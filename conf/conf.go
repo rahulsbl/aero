@@ -19,22 +19,38 @@ func init() {
 func loadDefaultConfig() {
 	configuration = confer.NewConfig()
 	seek := []string{
-		"dev.yaml",
-		"config.yaml",
-		"./config/dev.yaml",
+		// least priority
 		"./config/config.yaml",
+		"config.yaml",
+
+		// next priority
+		"./config/dev.yaml",
+		"dev.yaml",
+
+		// highest priority
+		"./config/production.yaml",
+		"production.yaml",
 	}
 	var err error
-	for _, file := range seek {
-		err := configuration.ReadPaths(file)
+	var files []string = make([]string, 0)
+	for _, f := range seek {
+		tmp := confer.NewConfig()
+		err = tmp.ReadPaths(f)
 		if err == nil {
-			abs, _ := filepath.Abs(file)
-			fmt.Println("Configuration loaded:", abs)
-			break
+			abs, _ := filepath.Abs(f)
+			files = append(files, abs)
 		}
 	}
-	if err != nil {
-		fmt.Println("No configuration file found")
+
+	if len(files) == 0 {
+		fmt.Println("No yaml configuration file found.")
+	} else {
+		configuration.ReadPaths(files...)
+		fmt.Println("Loading configurations:", len(files), "file(s)")
+		for i := 0; i < len(files)-1; i++ {
+			fmt.Print(files[i], " → ")
+		}
+		fmt.Print(files[len(files)-1], "\n")
 	}
 }
 
