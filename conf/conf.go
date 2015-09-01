@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/jacobstr/confer"
 	"path/filepath"
+	"strings"
 )
 
 // TODO:
@@ -54,46 +55,52 @@ func loadDefaultConfig() {
 	}
 }
 
-func Get(key string, defValue interface{}) interface{} {
+func Get(defaultVal interface{}, keys ...string) interface{} {
+	key := strings.Join(keys, ".")
 	if configuration.IsSet(key) {
 		return configuration.Get(key)
 	} else {
-		return defValue
+		return defaultVal
 	}
 }
 
-func Int(key string, defValue int) int {
+func Int(defaultVal int, keys ...string) int {
+	key := strings.Join(keys, ".")
 	if Exists(key) {
 		return configuration.GetInt(key)
 	} else {
-		return defValue
+		return defaultVal
 	}
 }
 
-func String(key string, defValue string) string {
+func String(defaultVal string, keys ...string) string {
+	key := strings.Join(keys, ".")
 	if Exists(key) {
 		return configuration.GetString(key)
 	} else {
-		return defValue
+		return defaultVal
 	}
 }
 
-func StringSlice(key string, defValue []string) []string {
+func StringSlice(defaultVal []string, keys ...string) []string {
+	key := strings.Join(keys, ".")
 	if Exists(key) {
 		return configuration.GetStringSlice(key)
 	} else {
-		return defValue
+		return defaultVal
 	}
 }
 
-func Bool(key string, defValue bool) bool {
+func Bool(defaultVal bool, keys ...string) bool {
+	key := strings.Join(keys, ".")
 	if Exists(key) {
 		return configuration.GetBool(key)
 	} else {
-		return defValue
+		return defaultVal
 	}
 }
 
-func Exists(key string) bool {
+func Exists(keys ...string) bool {
+	key := strings.Join(keys, ".")
 	return configuration.IsSet(key)
 }

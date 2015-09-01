@@ -12,27 +12,30 @@ type Cacher interface {
 	Get(key string) ([]byte, error)
 }
 
-func getIndex(key string) string {
+func prepareKey(key string) string {
 	return strings.Replace(key, " ", "-", -1)
 }
 
 func FromConfig(container string) (out Cacher) {
 
-	cType := conf.String(container+".type", "")
+	cType := conf.String("", container, "type")
 	panik.If(cType == "", "cache type is not specified")
 
 	switch cType {
 	case "memcache":
 		out = MemcacheFromConfig(container)
 
-	case "inmem":
-		out = InmemFromConfig(container)
+	case "inmem", "inmemory":
+		out = InMemoryFromConfig(container)
 
 	case "debug":
 		out = DebugFromConfig(container)
 
+	case "redis":
+		out = RedisFromConfig(container)
+
 	default:
-		panic("unknown cache type specifed: " + cType)
+		panik.Do("Unknown cache provider: %s", cType)
 	}
 
 	return out

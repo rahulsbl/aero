@@ -13,7 +13,7 @@ type debugCache struct {
 	r    *os.File
 }
 
-func NewDebugCache(w string, r string, inner Cacher) Cacher {
+func NewDebug(w string, r string, inner Cacher) Cacher {
 	var err error
 	var rf, wf *os.File
 
@@ -39,15 +39,15 @@ func NewDebugCache(w string, r string, inner Cacher) Cacher {
 // - read-file
 // - write-file
 func DebugFromConfig(container string) Cacher {
-	return NewDebugCache(
-		conf.String(container+".write-file", ""),
-		conf.String(container+".read-file", ""),
+	return NewDebug(
+		conf.String("", container, "write-file"),
+		conf.String("", container, "read-file"),
 		FromConfig(container+".inner"),
 	)
 }
 
 func (c debugCache) Set(key string, data []byte, expireIn time.Duration) {
-	k := getIndex(key)
+	k := prepareKey(key)
 	c.base.Set(key, data, expireIn)
 	c.writeSetLog(k, data)
 }
@@ -56,10 +56,10 @@ func (c debugCache) Get(key string) ([]byte, error) {
 	data, err := c.base.Get(key)
 
 	if err != nil {
-		c.writeGetLog(getIndex(key), []byte("<not-found>"))
+		c.writeGetLog(prepareKey(key), []byte("<not-found>"))
 		return nil, err
 	} else {
-		c.writeGetLog(getIndex(key), data)
+		c.writeGetLog(prepareKey(key), data)
 		return data, nil
 	}
 }
