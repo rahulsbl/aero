@@ -13,15 +13,15 @@ func init() {
 
 func Get(useMaster bool) gorm.DB {
 	s := cstr.Get(useMaster)
-	return From(s.Storage, s.Conn)
+	return From(s.Engine, s.Conn)
 }
 
 func ReadConfig(container string) gorm.DB {
 	s := cstr.ReadConfig(container)
-	return From(s.Storage, s.Conn)
+	return From(s.Engine, s.Conn)
 }
 
-func From(storage string, conn string) gorm.DB {
+func From(engine string, conn string) gorm.DB {
 	var ormObj gorm.DB
 	var ok bool
 	var err error
@@ -31,7 +31,7 @@ func From(storage string, conn string) gorm.DB {
 	}
 	// http://go-database-sql.org/accessing.html
 	// the sql.DB object is designed to be long-lived
-	if ormObj, err = gorm.Open(storage, conn); err == nil {
+	if ormObj, err = gorm.Open(engine, conn); err == nil {
 		if ormInit != nil {
 			for _, fn := range ormInit {
 				fn(&ormObj)

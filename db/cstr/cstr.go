@@ -3,6 +3,7 @@ package cstr
 import (
 	"fmt"
 	_ "github.com/go-sql-driver/mysql"
+	_ "github.com/lib/pq"
 	"github.com/thejackrabbit/aero/conf"
 	"github.com/thejackrabbit/aero/panik"
 	"math/rand"
@@ -13,14 +14,14 @@ func init() {
 	initMasterAndSlaves()
 }
 
-type Schema struct {
-	Storage string
-	Conn    string
-	Mdb     string // mongo database name
+type Storage struct {
+	Engine string
+	Conn   string
+	Mdb    string // mongo database name
 }
 
-var master Schema
-var slaves []Schema = make([]Schema, 0)
+var master Storage
+var slaves []Storage = make([]Storage, 0)
 
 func initMasterAndSlaves() {
 
@@ -40,16 +41,16 @@ func initMasterAndSlaves() {
 	}
 }
 
-func ReadConfig(container string) (s Schema) {
+func ReadConfig(container string) (s Storage) {
 
 	// Get the "type" of the db
 	if !conf.Exists(container) {
 		panik.Do("Configuration under %s not found", container)
 	}
 
-	s.Storage = conf.String("", container, "storage")
+	s.Engine = conf.String("", container, "engine")
 
-	switch s.Storage {
+	switch s.Engine {
 	case "mysql", "maria", "mariadb":
 		{
 
@@ -60,7 +61,7 @@ func ReadConfig(container string) (s Schema) {
 			db := conf.String("", container, "db")
 			timezone := conf.String("", container, "timezone")
 
-			s.Storage = "mysql"
+			s.Engine = "mysql"
 			s.Conn = fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?parseTime=true&loc=%s",
 				username, password,
 				host, port, db,
@@ -68,11 +69,32 @@ func ReadConfig(container string) (s Schema) {
 			)
 		}
 
+	case "postgres":
+		{
+			username := conf.String("", container, "username")
+			password := conf.String("", container, "password")
+			host := conf.String("", container, "host")
+			port := conf.String("", container, "port")
+			db := conf.String("", container, "db")
+			sslmode := conf.String("disable", container, "sslmode")
+
+			auth := ""
+			if username != "" || password != "" {
+				auth = username + ":" + password + "@"
+			}
+
+			s.Engine = "postgres"
+			s.Conn = fmt.Sprintf("postgres://%s%s:%s/%s?sslmode=%s",
+				auth,
+				host, port, db, sslmode,
+			)
+		}
+
 	case "sqlite3":
 		{
 			path := conf.String("", container, "path")
 
-			s.Storage = "sqlite3"
+			s.Engine = "sqlite3"
 			s.Conn = path
 		}
 
@@ -100,7 +122,7 @@ func ReadConfig(container string) (s Schema) {
 				auth = username + ":" + password + "@"
 			}
 
-			s.Storage = "mongo"
+			s.Engine = "mongo"
 			s.Conn = fmt.Sprintf("mongodb://%s%s%s%s/%s%s",
 				auth, host, port, replicas,
 				db, options,
@@ -108,13 +130,13 @@ func ReadConfig(container string) (s Schema) {
 			s.Mdb = db
 		}
 	default:
-		panik.Do("Unsupported db %s", s.Storage)
+		panik.Do("Unsupported db %s", s.Engine)
 	}
 
 	return
 }
 
-func Get(useMaster bool) Schema {
+func Get(useMaster bool) Storage {
 	if useMaster {
 		return master
 	}
