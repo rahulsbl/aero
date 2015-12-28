@@ -129,6 +129,18 @@ func ReadConfig(container string) (s Storage) {
 			)
 			s.Mdb = db
 		}
+
+	case "memcache":
+		{
+			host := conf.String("", container, "host")
+			port := conf.String("", container, "port")
+
+			s.Engine = "memcache"
+			s.Conn = fmt.Sprintf("%s:%s",
+				host, port,
+			)
+		}
+
 	default:
 		panik.Do("Unsupported db %s", s.Engine)
 	}
