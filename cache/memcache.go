@@ -8,17 +8,21 @@ import (
 )
 
 type memCache struct {
-	mc *gomemcache.Memcache
+	mc   *gomemcache.Memcache
+	host string
+	port int
 }
 
 func NewMemcache(host string, port int) Cacher {
+	// connection check
 	serv, err := gomemcache.Connect(host, port)
 	panik.On(err)
 
 	return memCache{
-		mc: serv,
+		mc:   serv,
+		host: host,
+		port: port,
 	}
-	// TODO: close port on destruction
 }
 
 // memcache:
@@ -39,10 +43,19 @@ func (c memCache) Set(key string, data []byte, expireIn time.Duration) {
 }
 
 func (c memCache) Get(key string) ([]byte, error) {
-	data, _, err := c.mc.Get(prepareKey(key))
+
+	var data []byte
+	var err error
+
+	data, _, err = c.mc.Get(prepareKey(key))
+
 	if err != nil {
 		return nil, err
 	} else {
 		return data, nil
 	}
+}
+
+func (c memCache) Close() {
+	panik.On(c.mc.Close())
 }

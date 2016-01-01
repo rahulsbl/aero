@@ -10,6 +10,7 @@ import (
 type Cacher interface {
 	Set(key string, data []byte, expireIn time.Duration)
 	Get(key string) ([]byte, error)
+	Close()
 }
 
 func prepareKey(key string) string {

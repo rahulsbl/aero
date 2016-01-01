@@ -64,6 +64,10 @@ func (c debugCache) Get(key string) ([]byte, error) {
 	}
 }
 
+func (c debugCache) Close() {
+	c.base.Close()
+}
+
 var newLine string = "\r\n"
 
 func (c debugCache) writeGetLog(k string, b []byte) {

@@ -54,3 +54,7 @@ func (rd redisStore) Get(key string) ([]byte, error) {
 		return data, nil
 	}
 }
+
+func (rd redisStore) Close() {
+	panik.On(rd.r.Close())
+}

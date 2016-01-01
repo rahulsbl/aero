@@ -34,3 +34,7 @@ func (c memStore) Get(key string) ([]byte, error) {
 		return nil, errors.New("key not found in inmem cache: " + key)
 	}
 }
+
+func (c memStore) Close() {
+
+}
