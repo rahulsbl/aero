@@ -7,14 +7,23 @@ import (
 	"time"
 )
 
-type Cacher interface {
-	Set(key string, data []byte, expireIn time.Duration)
-	Get(key string) ([]byte, error)
-	Close()
+type KeyFormatter interface {
+	Format(key string) string
 }
 
-func prepareKey(key string) string {
+type SimpleKeyFormat struct {
+}
+
+func (k SimpleKeyFormat) Format(key string) string {
 	return strings.Replace(key, " ", "-", -1)
+}
+
+type Cacher interface {
+	KeyFormatter
+	Set(key string, data []byte, expireIn time.Duration)
+	Get(key string) ([]byte, error)
+	Delete(key string) error
+	Close()
 }
 
 func FromConfig(container string) (out Cacher) {

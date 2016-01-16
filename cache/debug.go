@@ -8,6 +8,7 @@ import (
 )
 
 type debugCache struct {
+	SimpleKeyFormat
 	base Cacher
 	w    *os.File
 	r    *os.File
@@ -47,21 +48,28 @@ func DebugFromConfig(container string) Cacher {
 }
 
 func (c debugCache) Set(key string, data []byte, expireIn time.Duration) {
-	k := prepareKey(key)
+	k := c.Format(key)
 	c.base.Set(key, data, expireIn)
 	c.writeSetLog(k, data)
 }
 
 func (c debugCache) Get(key string) ([]byte, error) {
 	data, err := c.base.Get(key)
+	k := c.Format(key)
 
 	if err != nil {
-		c.writeGetLog(prepareKey(key), []byte("<not-found>"))
+		c.writeGetLog(k, []byte("<not-found>"))
 		return nil, err
 	} else {
-		c.writeGetLog(prepareKey(key), data)
+		c.writeGetLog(k, data)
 		return data, nil
 	}
+}
+
+func (c debugCache) Delete(key string) error {
+	k := c.Format(key)
+	c.writeDeleteLog(k, []byte(""))
+	return c.base.Delete(key)
 }
 
 func (c debugCache) Close() {
@@ -98,4 +106,9 @@ func (c debugCache) writeSetLog(k string, b []byte) {
 	} else {
 		c.w.WriteString(newLine + "<nil>")
 	}
+}
+
+func (c debugCache) writeDeleteLog(k string, b []byte) {
+	c.w.WriteString(newLine + "~ ~ ~")
+	c.w.WriteString(newLine + "DELETE: " + k + " @ " + time.Now().Format("2006-01-02_15:04:05"))
 }

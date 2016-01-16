@@ -8,6 +8,7 @@ import (
 )
 
 type memCache struct {
+	SimpleKeyFormat
 	mc   *gomemcache.Memcache
 	host string
 	port int
@@ -39,7 +40,8 @@ func MemcacheFromConfig(container string) Cacher {
 }
 
 func (c memCache) Set(key string, data []byte, expireIn time.Duration) {
-	c.mc.Set(prepareKey(key), data, 0, int64(expireIn.Seconds()))
+	key = c.Format(key)
+	c.mc.Set(key, data, 0, int64(expireIn.Seconds()))
 }
 
 func (c memCache) Get(key string) ([]byte, error) {
@@ -47,13 +49,19 @@ func (c memCache) Get(key string) ([]byte, error) {
 	var data []byte
 	var err error
 
-	data, _, err = c.mc.Get(prepareKey(key))
+	key = c.Format(key)
+	data, _, err = c.mc.Get(key)
 
 	if err != nil {
 		return nil, err
 	} else {
 		return data, nil
 	}
+}
+
+func (c memCache) Delete(key string) error {
+	key = c.Format(key)
+	return c.mc.Delete(key)
 }
 
 func (c memCache) Close() {

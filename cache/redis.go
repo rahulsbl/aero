@@ -9,6 +9,7 @@ import (
 )
 
 type redisStore struct {
+	SimpleKeyFormat
 	r *redis.Client
 }
 
@@ -43,16 +44,23 @@ func RedisFromConfig(container string) Cacher {
 }
 
 func (rd redisStore) Set(key string, data []byte, expireIn time.Duration) {
-	rd.r.Set(prepareKey(key), data, expireIn)
+	key = rd.Format(key)
+	rd.r.Set(key, data, expireIn)
 }
 
 func (rd redisStore) Get(key string) ([]byte, error) {
-	data, err := rd.r.Get(prepareKey(key)).Bytes()
+	key = rd.Format(key)
+	data, err := rd.r.Get(key).Bytes()
 	if err != nil {
 		return nil, err
 	} else {
 		return data, nil
 	}
+}
+
+func (rd redisStore) Delete(key string) error {
+	key = rd.Format(key)
+	return rd.r.Del(key).Err()
 }
 
 func (rd redisStore) Close() {
