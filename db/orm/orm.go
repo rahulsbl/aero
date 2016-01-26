@@ -9,6 +9,11 @@ var engines map[string]gorm.DB
 
 func init() {
 	engines = make(map[string]gorm.DB)
+
+	// default to SingularTable
+	DoOrmInit(func(o *gorm.DB) {
+		o.SingularTable(true)
+	})
 }
 
 func Get(useMaster bool) gorm.DB {

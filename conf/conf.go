@@ -3,7 +3,9 @@ package conf
 import (
 	"fmt"
 	"github.com/jacobstr/confer"
+	"github.com/thejackrabbit/aero/panik"
 	"path/filepath"
+	"reflect"
 	"strings"
 )
 
@@ -103,4 +105,37 @@ func Bool(defaultVal bool, keys ...string) bool {
 func Exists(keys ...string) bool {
 	key := strings.Join(keys, ".")
 	return configuration.IsSet(key)
+}
+
+func Struct(addr interface{}, keys ...string) {
+	container := strings.Join(keys, ".")
+
+	// addr should be an address
+	s := fmt.Sprintf("%s", reflect.TypeOf(addr))
+	if !strings.HasPrefix(s, "*") {
+		panik.Do("conf.Read() expects address of struct")
+	}
+
+	rt := reflect.TypeOf(addr).Elem()
+	rv := reflect.ValueOf(addr).Elem()
+	for i := 0; i < rt.NumField(); i++ {
+		ft := rt.Field(i)
+		key := strings.ToLower(ft.Name)
+
+		if Exists(container, key) {
+			switch fmt.Sprintf("%s", ft.Type) {
+			case "string":
+				rv.Field(i).SetString(String("", container, key))
+			case "int":
+				rv.Field(i).SetInt(int64(Int(0, container, key)))
+			default:
+				panik.Do("conf.Read() found '%s' (must be string|int)", ft.Type)
+			}
+		} else {
+			// if it was required then error
+			if !strings.Contains(ft.Tag.Get("conf"), "optional") {
+				panik.Do("Config '%s' missing in reading %s", key, rt)
+			}
+		}
+	}
 }

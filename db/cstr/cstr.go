@@ -4,10 +4,10 @@ import (
 	"fmt"
 	_ "github.com/go-sql-driver/mysql"
 	_ "github.com/lib/pq"
+	_ "github.com/mattn/go-sqlite3"
 	"github.com/thejackrabbit/aero/conf"
 	"github.com/thejackrabbit/aero/panik"
 	"math/rand"
-	"net/url"
 )
 
 func init() {
@@ -53,20 +53,11 @@ func ReadConfig(container string) (s Storage) {
 	switch s.Engine {
 	case "mysql", "maria", "mariadb":
 		{
-
-			username := conf.String("", container, "username")
-			password := conf.String("", container, "password")
-			host := conf.String("", container, "host")
-			port := conf.String("", container, "port")
-			db := conf.String("", container, "db")
-			timezone := conf.String("", container, "timezone")
+			m := Mysql{}
+			conf.Struct(&m, container)
 
 			s.Engine = "mysql"
-			s.Conn = fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?parseTime=true&loc=%s",
-				username, password,
-				host, port, db,
-				url.QueryEscape(timezone),
-			)
+			s.Conn = m.Cstr()
 		}
 
 	case "postgres":
@@ -92,53 +83,30 @@ func ReadConfig(container string) (s Storage) {
 
 	case "sqlite3":
 		{
-			path := conf.String("", container, "path")
+			q := Sqlite{}
+			conf.Struct(&q, container)
 
 			s.Engine = "sqlite3"
-			s.Conn = path
+			s.Conn = q.Cstr()
 		}
 
 	case "mongo", "mongodb":
 		{
-			username := conf.String("", container, "username")
-			password := conf.String("", container, "password")
-			host := conf.String("", container, "host")
-			port := conf.String("", container, "port")
-			db := conf.String("", container, "db")
-			replicas := conf.String("", container, "replicas")
-			options := conf.String("", container, "options")
+			m := Mongodb{}
+			conf.Struct(&m, container)
 
-			if port != "" {
-				port = ":" + port
-			}
-			if replicas != "" {
-				replicas = "," + replicas
-			}
-			if options != "" {
-				options = "?" + options
-			}
-			auth := ""
-			if username != "" || password != "" {
-				auth = username + ":" + password + "@"
-			}
-
-			s.Engine = "mongo"
-			s.Conn = fmt.Sprintf("mongodb://%s%s%s%s/%s%s",
-				auth, host, port, replicas,
-				db, options,
-			)
-			s.Mdb = db
+			s.Engine = "mongodb"
+			s.Conn = m.Cstr()
+			s.Mdb = m.Db
 		}
 
 	case "memcache":
 		{
-			host := conf.String("", container, "host")
-			port := conf.String("", container, "port")
+			m := Memcache{}
+			conf.Struct(&m, container)
 
 			s.Engine = "memcache"
-			s.Conn = fmt.Sprintf("%s:%s",
-				host, port,
-			)
+			s.Conn = m.Cstr()
 		}
 
 	default:
