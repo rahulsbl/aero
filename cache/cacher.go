@@ -6,7 +6,6 @@ import (
 	"github.com/thejackrabbit/aero/engine"
 	"github.com/thejackrabbit/aero/key"
 	"github.com/thejackrabbit/aero/panik"
-	"os"
 	"strings"
 	"time"
 )
@@ -43,8 +42,7 @@ func NewCacher(container ...string) (out Cacher) {
 
 	case "log":
 		{
-			wd, _ := os.Getwd()
-			dir := conf.String(wd, parent, "dir")
+			dir := conf.String("", parent, "dir")
 			inner := NewCacher(parent, "inner")
 			out = NewCacheLogger(dir, inner)
 		}
@@ -62,27 +60,3 @@ func NewCacher(container ...string) (out Cacher) {
 
 	return out
 }
-
-// func RedisFromConfig(container string) Cacher {
-// 	cnf := cstr.Redis{}
-// 	conf.Struct(&cnf, container)
-//
-// 	return NewRedis(cnf.Host, cnf.Port, cnf.Db)
-// }
-
-// func NewMemcache(host string, port int) Cacher {
-// 	// connection check
-// 	serv, err := gomemcache.Connect(host, port)
-// 	panik.On(err)
-//
-// 	return engine.Memcache{
-// 		Mc: serv,
-// 	}
-// }
-//
-// func NewMemcacheConf(container string) Cacher {
-// 	cnf := cstr.Memcache{}
-// 	conf.Struct(&cnf, container)
-//
-// 	return NewMemcache(cnf.Host, cnf.Port)
-// }

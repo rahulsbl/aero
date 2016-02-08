@@ -21,7 +21,7 @@ func NewQueue(container ...string) (out Queue) {
 	parent := strings.Join(container, ".")
 
 	engn := conf.String("", parent, "engine")
-	panik.If(engn == "", "queue engine is not specified")
+	panik.If(engn == "", "queue engine is not specified under %s", parent)
 
 	switch engn {
 	case "redis":

@@ -18,6 +18,10 @@ type CacheLogger struct {
 
 func NewCacheLogger(dir string, inner Cacher) Cacher {
 
+	if dir == "" {
+		dir, _ = os.Getwd()
+	}
+
 	if !strings.HasSuffix(dir, "/") && !strings.HasSuffix(dir, "\\") {
 		dir += "/"
 	}
@@ -38,7 +42,7 @@ func NewCacheLogger(dir string, inner Cacher) Cacher {
 func (c CacheLogger) Set(key string, data []byte, expireIn time.Duration) {
 	k := c.Format(key)
 	c.Inner.Set(key, data, expireIn)
-	c.Logger.Info("cache.set", "key-orig", k, "key-final", c.Inner.Format(key), "data", data)
+	c.Logger.Info("cache.Set", "key-orig", k, "key-final", c.Inner.Format(key), "data", data)
 }
 
 func (c CacheLogger) Get(key string) ([]byte, error) {
@@ -46,21 +50,21 @@ func (c CacheLogger) Get(key string) ([]byte, error) {
 	k := c.Format(key)
 
 	if err != nil {
-		c.Logger.Info("cache.get", "key-orig", k, "key-final", c.Inner.Format(key), "data", "<not-found>")
+		c.Logger.Info("cache.Get", "key-orig", k, "key-final", c.Inner.Format(key), "data", "<not-found>")
 		return nil, err
 	} else {
-		c.Logger.Info("cache.get", "key-orig", k, "key-final", c.Inner.Format(key), "data", data)
+		c.Logger.Info("cache.Get", "key-orig", k, "key-final", c.Inner.Format(key), "data", data)
 		return data, nil
 	}
 }
 
 func (c CacheLogger) Delete(key string) error {
 	k := c.Format(key)
-	c.Logger.Info("cache.delete", "key-orig", k, "key-final", c.Inner.Format(key))
+	c.Logger.Info("cache.Delete", "key-orig", k, "key-final", c.Inner.Format(key))
 	return c.Inner.Delete(key)
 }
 
 func (c CacheLogger) Close() {
 	c.Inner.Close()
-	c.Logger.Info("cache.close")
+	c.Logger.Info("cache.Close")
 }

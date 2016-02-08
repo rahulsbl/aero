@@ -3,6 +3,7 @@ package conf
 import (
 	"fmt"
 	"github.com/jacobstr/confer"
+	"github.com/serenize/snaker"
 	"github.com/thejackrabbit/aero/panik"
 	"path/filepath"
 	"reflect"
@@ -120,19 +121,27 @@ func Struct(addr interface{}, keys ...string) {
 	rv := reflect.ValueOf(addr).Elem()
 	for i := 0; i < rt.NumField(); i++ {
 		ft := rt.Field(i)
-		key := strings.ToLower(ft.Name)
+		key := ft.Name
 
-		if Exists(container, key) {
-			switch fmt.Sprintf("%s", ft.Type) {
-			case "string":
-				rv.Field(i).SetString(String("", container, key))
-			case "int":
-				rv.Field(i).SetInt(int64(Int(0, container, key)))
-			default:
-				panik.Do("conf.Read() found '%s' (must be string|int)", ft.Type)
+		// read key in any of thiese forms:
+		// numItems, numitems, num_items, num-items
+		keys := []string{key, strings.ToLower(key), snaker.CamelToSnake(key), strings.Replace(snaker.CamelToSnake(key), "_", "-", -1)}
+		found := false
+		for _, k := range keys {
+			if Exists(container, k) {
+				found = true
+				switch fmt.Sprintf("%s", ft.Type) {
+				case "string":
+					rv.Field(i).SetString(String("", container, k))
+				case "int":
+					rv.Field(i).SetInt(int64(Int(0, container, k)))
+				default:
+					panik.Do("conf.Read() found '%s' (must be string|int)", ft.Type)
+				}
 			}
-		} else {
-			// if it was required then error
+		}
+
+		if !found { // if it was required then error
 			if !strings.Contains(ft.Tag.Get("conf"), "optional") {
 				panik.Do("Config '%s' missing in reading %s", key, rt)
 			}
