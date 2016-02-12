@@ -10,15 +10,27 @@ func On(err error) {
 	}
 }
 
-func Upon(err error, f func()) {
+func On2(err error, f func()) {
 	if err != nil {
-		f()
+		if f != nil {
+			f()
+		}
 		panic(err)
 	}
 }
 
 func If(condition bool, message string, params ...interface{}) {
 	if condition {
+		s := fmt.Sprintf(message, params...)
+		panic(s)
+	}
+}
+
+func If2(condition bool, f func(), message string, params ...interface{}) {
+	if condition {
+		if f != nil {
+			f()
+		}
 		s := fmt.Sprintf(message, params...)
 		panic(s)
 	}
