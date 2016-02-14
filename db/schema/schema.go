@@ -12,45 +12,25 @@ import (
 
 var Dbo *gorm.DB
 
-type Format struct {
-	DeleteBeforeBuild bool
-	BuildTable        bool
-	BuildHistory      bool
-}
-
-func Build(f Format, models ...interface{}) {
+func Build(delExisting bool, models ...interface{}) {
 	panik.If(Dbo == nil, "Dbo reference is nil")
 	Dbo.LogMode(true)
 
-	// create tables & history tables
+	// create tables loop
 	for _, model := range models {
 		tbl := NewTable(model)
 
 		// delete tables
-		if f.BuildTable && f.DeleteBeforeBuild && tbl.exists() {
+		if delExisting && tbl.exists() {
 			tbl.drop()
 		}
 
-		if f.BuildHistory && f.DeleteBeforeBuild && tbl.historyExists() {
-			tbl.dropHistory()
-		}
-
 		// main migration
-		if f.BuildTable {
-			Dbo.AutoMigrate(model)
-		}
+		Dbo.AutoMigrate(model)
 
-		// build history
-		if f.BuildHistory {
-			if tbl.historyExists() {
-				tbl.dropHistory()
-			}
-			tbl.setupHistoryTable()
-		}
-
-		// updated_at trigger
+		// updated_at trigger (except on history tables)
 		updAt := tbl.field("updated_at")
-		if updAt != nil {
+		if !tbl.isHistory() && updAt != nil {
 			if !strings.Contains(strings.ToLower(updAt.Extra), strings.ToLower("on update current_timestamp")) {
 				sql := fmt.Sprintf("ALTER TABLE %s MODIFY COLUMN %s ON UPDATE CURRENT_TIMESTAMP", tbl.name, updAt.info())
 				sqlExec(sql)
@@ -58,17 +38,31 @@ func Build(f Format, models ...interface{}) {
 		}
 	}
 
-	// add foreign keys
 	for _, model := range models {
-		mt := reflect.TypeOf(model).Elem()
-		num := mt.NumField()
-		for i := 0; i < num; i++ {
-			fld := mt.FieldByIndex([]int{i})
-			tag := fld.Tag
-			if len(tag.Get("fk")) > 0 {
-				fk := str.SnakeCase(fld.Name)
-				fmt.Println(tag.Get("fk"), fk)
-				Dbo.Model(model).AddForeignKey(fk, tag.Get("fk"), "RESTRICT", "RESTRICT")
+		tbl := NewTable(model)
+		if tbl.isHistory() {
+
+			// drop auto_increments & primary key
+			tbl.readyHistoryTable()
+
+		} else {
+
+			// add foreign keys
+			mt := reflect.TypeOf(model).Elem()
+			num := mt.NumField()
+			for i := 0; i < num; i++ {
+				fld := mt.FieldByIndex([]int{i})
+				tag := fld.Tag
+				if len(tag.Get("fk")) > 0 {
+					fk := str.SnakeCase(fld.Name)
+					fmt.Println(tag.Get("fk"), fk)
+					Dbo.Model(model).AddForeignKey(fk, tag.Get("fk"), "RESTRICT", "RESTRICT")
+				}
+			}
+
+			// setup triggers
+			if tbl.exists() && tbl.historyExists() {
+				tbl.setupHistoryTriggers()
 			}
 		}
 	}
@@ -93,6 +87,10 @@ func NewTable(model interface{}) *table {
 		history: name + "_history",
 	}
 	return &tbl
+}
+
+func (t *table) isHistory() bool {
+	return strings.HasSuffix(t.name, "_history")
 }
 
 func (t *table) exists() bool {
@@ -155,7 +153,10 @@ func (t *table) primaryKeys() []field {
 	return pkeys
 }
 
-func (t *table) setupHistoryTable() {
+func (t *table) setupHistoryTable1() {
+
+	// builds the history table manually
+
 	// create alike
 	sql := fmt.Sprintf("create table %s like %s;", t.history, t.name)
 	sqlExec(sql)
@@ -167,12 +168,9 @@ func (t *table) setupHistoryTable() {
 	// remove auto_incr
 	autoInc := t.autoIncrField()
 	if autoInc != nil {
-		fmt.Println("auto found")
 		noAuto := strings.Replace(autoInc.info(), "auto_increment", "", -1)
 		sql = fmt.Sprintf("ALTER TABLE %s MODIFY %s", t.history, noAuto)
 		sqlExec(sql)
-	} else {
-		fmt.Println("auto none")
 	}
 
 	// drop primary key
@@ -180,6 +178,28 @@ func (t *table) setupHistoryTable() {
 	sqlExec(sql)
 
 	t.setupHistoryTriggers()
+}
+
+func (t *table) readyHistoryTable() {
+
+	if !strings.HasSuffix(t.name, "_history") {
+		return
+	}
+
+	// remove auto_incr
+	autoInc := t.autoIncrField()
+	if autoInc != nil {
+		noAuto := strings.Replace(autoInc.info(), "auto_increment", "", -1)
+		sql := fmt.Sprintf("ALTER TABLE %s MODIFY %s", t.name, noAuto)
+		sqlExec(sql)
+	}
+
+	// drop primary key
+	pkeys := t.primaryKeys()
+	if len(pkeys) > 0 {
+		sql := fmt.Sprintf("alter table %s drop primary key", t.name)
+		sqlExec(sql)
+	}
 }
 
 func (t *table) setupHistoryTriggers() {
