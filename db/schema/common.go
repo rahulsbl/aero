@@ -5,7 +5,7 @@ import (
 )
 
 type Auditable struct {
-	Action     string    `sql:"type:varchar(6);not null;DEFAULT:insert`
+	Action     string    `sql:"type:varchar(6);not null;DEFAULT:'insert'"`
 	ActionedAt time.Time `sql:"not null;DEFAULT:current_timestamp"`
 }
 
