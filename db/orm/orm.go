@@ -5,34 +5,35 @@ import (
 	"github.com/thejackrabbit/aero/db/cstr"
 )
 
-var engines map[string]gorm.DB
+var engines map[string]*gorm.DB
 
 func init() {
-	engines = make(map[string]gorm.DB)
+	engines = make(map[string]*gorm.DB)
 
-	// default to SingularTable
-	DoOrmInit(func(o *gorm.DB) {
+	// default to table singular naming convention
+	Initialize(func(o *gorm.DB) {
 		o.SingularTable(true)
 	})
 }
 
-func Get(useMaster bool) gorm.DB {
+func Get(useMaster bool) *gorm.DB {
 	s := cstr.Get(useMaster)
-	return From(s.Engine, s.Conn)
+	return GetConn(s.Engine, s.Conn)
 }
 
-func ReadConfig(container string) gorm.DB {
+func GetConfig(container string) *gorm.DB {
 	s := cstr.ReadConfig(container)
-	return From(s.Engine, s.Conn)
+	return GetConn(s.Engine, s.Conn)
 }
 
-func From(engine string, conn string) gorm.DB {
+func GetConn(engine string, conn string) *gorm.DB {
+	var ormCurr *gorm.DB
 	var ormObj gorm.DB
 	var ok bool
 	var err error
 
-	if ormObj, ok = engines[conn]; ok {
-		return ormObj
+	if ormCurr, ok = engines[conn]; ok {
+		return ormCurr
 	}
 	// http://go-database-sql.org/accessing.html
 	// the sql.DB object is designed to be long-lived
@@ -42,17 +43,16 @@ func From(engine string, conn string) gorm.DB {
 				fn(&ormObj)
 			}
 		}
-		engines[conn] = ormObj
-		return engines[conn]
-	} else {
-		panic(err)
+		engines[conn] = &ormObj
+		return &ormObj
 	}
+	panic(err)
 }
 
 // orm initializers
 var ormInit []func(*gorm.DB) = make([]func(*gorm.DB), 0)
 
-func DoOrmInit(fn func(*gorm.DB)) {
+func Initialize(fn func(*gorm.DB)) {
 	// TODO: use mutex
 	ormInit = append(ormInit, fn)
 }
