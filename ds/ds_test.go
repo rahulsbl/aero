@@ -4,7 +4,7 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 	"testing"
 )
-
+ 
 func TestMapEncodeDecode(t *testing.T) {
 
 	m := map[string]interface{}{"abc": "def", "lmn": 123}
