@@ -1,10 +1,11 @@
 package engine
 
 import (
+	"time"
+
 	"github.com/kklis/gomemcache"
 	"github.com/thejackrabbit/aero/key"
 	"github.com/thejackrabbit/aero/panik"
-	"time"
 )
 
 type Memcache struct {

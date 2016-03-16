@@ -1,11 +1,11 @@
 package engine
 
 import (
-	. "github.com/smartystreets/goconvey/convey"
-	"github.com/thejackrabbit/aero/engine"
-	"github.com/thejackrabbit/aero/panik"
 	"testing"
 	"time"
+
+	. "github.com/smartystreets/goconvey/convey"
+	"github.com/thejackrabbit/aero/panik"
 )
 
 var redis_host string = "dockerhost"
@@ -15,7 +15,7 @@ var redis_que string = "abcdef"
 
 func TestRedisGetSet(t *testing.T) {
 
-	r := engine.NewRedis(redis_host, redis_port, redis_db)
+	r := NewRedis(redis_host, redis_port, redis_db)
 
 	Convey("Given a Redis cache", t, func() {
 		Convey("When you Set a key-value", func() {
@@ -32,7 +32,7 @@ func TestRedisGetSet(t *testing.T) {
 func TestRedis_QuePushPop(t *testing.T) {
 
 	emptyTheQue()
-	r := engine.NewRedis2(redis_host, redis_port, redis_db, redis_que)
+	r := NewRedis2(redis_host, redis_port, redis_db, redis_que)
 
 	Convey("Given a Redis queue", t, func() {
 		Convey("When you push two elements", func() {
@@ -43,7 +43,7 @@ func TestRedis_QuePushPop(t *testing.T) {
 				So(err, ShouldBeNil)
 				So(i, ShouldEqual, 2)
 				Convey("And when you pop one value", func() {
-					v, e1 := r.Pop(false)
+					v, e1 := r.Pop()
 					Convey("Then value should match and length must be 1", func() {
 						So(e1, ShouldBeNil)
 						So(string(v), ShouldEqual, "one")
@@ -51,7 +51,7 @@ func TestRedis_QuePushPop(t *testing.T) {
 						So(e2, ShouldBeNil)
 						So(l, ShouldEqual, 1)
 						Convey("And when you pop another value", func() {
-							v2, e3 := r.Pop(false)
+							v2, e3 := r.Pop()
 							Convey("Then the value must match and length must be 0", func() {
 								So(e3, ShouldBeNil)
 								So(string(v2), ShouldEqual, "two")
@@ -69,12 +69,12 @@ func TestRedis_QuePushPop(t *testing.T) {
 }
 
 func emptyTheQue() {
-	r := engine.NewRedis2(redis_host, redis_port, redis_db, redis_que)
+	r := NewRedis2(redis_host, redis_port, redis_db, redis_que)
 	for {
 		i, err := r.Len()
 		panik.On(err)
 		if i != 0 {
-			r.Pop(false)
+			r.Pop()
 		} else {
 			break
 		}

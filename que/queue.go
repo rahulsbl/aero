@@ -1,12 +1,13 @@
 package que
 
 import (
+	"strings"
+	"time"
+
 	"github.com/thejackrabbit/aero/conf"
 	"github.com/thejackrabbit/aero/db/cstr"
 	"github.com/thejackrabbit/aero/engine"
 	"github.com/thejackrabbit/aero/panik"
-	"strings"
-	"time"
 )
 
 type Queue interface {

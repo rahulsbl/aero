@@ -31,5 +31,5 @@ func SentenceCase(text string) string {
 		return string(u)
 	}
 
-	return ""
+	return text
 }

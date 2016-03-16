@@ -119,7 +119,7 @@ func ToJson(r io.Reader) ([]string, []map[string]interface{}, error) {
 
 	// loop through everything again, and try to convert
 	// each string item to a type that is in accordance to
-	// what we found earlier
+	// what was found earlier
 	var j map[string]interface{}
 	for i := 0; i < len(rows); i++ {
 		j = rows[i]

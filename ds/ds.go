@@ -4,10 +4,16 @@ package ds
 import (
 	"encoding/json"
 	"errors"
+
+	"github.com/fatih/structs"
 	"github.com/mitchellh/mapstructure"
 	"github.com/pquerna/ffjson/ffjson"
 	"github.com/thejackrabbit/aero/panik"
 )
+
+func init() {
+	structs.DefaultTagName = "json"
+}
 
 func Load(addr interface{}, b []byte) error {
 	return json.Unmarshal(b, addr)
@@ -39,8 +45,7 @@ func LoadStruct(addr interface{}, m map[string]interface{}) error {
 	return decoder.Decode(m)
 }
 
-// Encoding to bytes
-// -------------------
+// Encode to bytes
 
 func ToBytes(o interface{}, jsonPretty bool) ([]byte, error) {
 	if !jsonPretty {
@@ -60,4 +65,22 @@ func ToBytes2(o interface{}, enc string) ([]byte, error) {
 		panik.Do("Unknown encoding %s", enc)
 		return nil, errors.New("Unknown encoding " + enc)
 	}
+}
+
+// TODO: this method is very unoptimized
+// It converts to json first, and then loads a map
+// Need to do this directly using reflection
+func StructToMap(addr interface{}) map[string]interface{} {
+	b, err := ToBytes(addr, false)
+	if err != nil {
+		panic("json marshall error")
+	}
+
+	var mp map[string]interface{}
+	err = Load(&mp, b)
+	if err != nil {
+		panic("map conversion error")
+	}
+
+	return mp
 }
