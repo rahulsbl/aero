@@ -28,23 +28,24 @@ func GetConfig(container string) *gorm.DB {
 
 func GetConn(engine string, conn string) *gorm.DB {
 	var ormCurr *gorm.DB
-	var ormObj gorm.DB
+	var ormObj *gorm.DB
 	var ok bool
 	var err error
 
 	if ormCurr, ok = engines[conn]; ok {
 		return ormCurr
 	}
+
 	// http://go-database-sql.org/accessing.html
 	// the sql.DB object is designed to be long-lived
 	if ormObj, err = gorm.Open(engine, conn); err == nil {
 		if ormInit != nil {
 			for _, fn := range ormInit {
-				fn(&ormObj)
+				fn(ormObj)
 			}
 		}
-		engines[conn] = &ormObj
-		return &ormObj
+		engines[conn] = ormObj
+		return ormObj
 	}
 	panic(err)
 }

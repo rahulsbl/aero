@@ -21,16 +21,16 @@ type Persistent struct {
 }
 
 type WWW struct {
-	URLWeb       string   `sql:"TYPE:varchar(256);not null" json:"url_web"`
-	URLWebOld    *db.JArr `sql:"TYPE:json;" json:"-" insert:"no" update:"no"`
-	MetaTitle    string   `sql:"TYPE:varchar(512);not null;DEFAULT:''" json:"meta_title"`
-	MetaDesc     string   `sql:"TYPE:varchar(512);not null;DEFAULT:''" json:"meta_desc"`
-	MetaKeywords string   `sql:"TYPE:varchar(512);not null;DEFAULT:''" json:"meta_keywords"`
-	Sitemap      uint8    `sql:"TYPE:tinyint unsigned;not null;DEFAULT:'1'" json:"sitemap"`
+	URLWeb       string    `sql:"TYPE:varchar(256);not null" json:"url_web"`
+	URLWebOld    *db.JsonA `sql:"TYPE:json;" json:"-" insert:"no" update:"no"`
+	MetaTitle    string    `sql:"TYPE:varchar(512);not null;DEFAULT:''" json:"meta_title"`
+	MetaDesc     string    `sql:"TYPE:varchar(512);not null;DEFAULT:''" json:"meta_desc"`
+	MetaKeywords string    `sql:"TYPE:varchar(512);not null;DEFAULT:''" json:"meta_keywords"`
+	Sitemap      uint8     `sql:"TYPE:tinyint unsigned;not null;DEFAULT:'1'" json:"sitemap"`
 }
 
 type Tagged struct {
-	Tags *db.JArr `sql:"TYPE:json;" json:"tags"`
+	Tags *db.JsonA `sql:"TYPE:json;" json:"tags"`
 }
 
 type Ordered struct {
@@ -38,10 +38,29 @@ type Ordered struct {
 }
 
 type Modifier struct {
-	Actor *db.JMap `sql:"TYPE:json" json:"actor"`
+	Actor *db.JsonM `sql:"TYPE:json" json:"actor"`
 }
 
 type AuditTrail struct {
 	Action     string    `sql:"TYPE:varchar(6);not null;DEFAULT:'insert'"`
 	ActionedAt time.Time `sql:"not null;DEFAULT:current_timestamp"`
+}
+
+type LiveFields struct {
+	Info *db.JsonM `sql:"TYPE:json" json:"info"`
+}
+
+type PopulateDB interface {
+	InitRecords() []interface{}
+}
+
+type Attribute struct {
+	IDKey
+	Table    string    `sql:"TYPE:varchar(256);not null" json:"table"`
+	Field    string    `sql:"TYPE:varchar(256);not null" json:"field"`
+	Code     string    `sql:"TYPE:varchar(256);not null" json:"code"`
+	Label    string    `sql:"TYPE:varchar(256);not null" json:"label"`
+	Datatype string    `sql:"TYPE:ENUM('int','string','decimal');not null" json:"datatype"`
+	Multi    uint8     `sql:"TYPE:tinyint unsigned;not null;DEFAULT:'0'" json:"table"`
+	Superset *db.JsonA `sql:"TYPE:json" json:"superset"`
 }
