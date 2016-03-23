@@ -57,6 +57,11 @@ func Build(history bool, models ...interface{}) {
 	for _, model := range models {
 		setupBehaviors(model)
 	}
+
+	// initialize records
+	for _, model := range models {
+		populateRecords(model)
+	}
 }
 
 func sqlHasRows(sql string) bool {
@@ -197,4 +202,21 @@ func setupHistoryAndLogging(model interface{}) *table {
 	sqlExec(sql)
 
 	return his
+}
+
+func populateRecords(model interface{}) {
+	if m, ok := model.(PopulateDB); ok {
+		tx := Dbo.Begin()
+		{
+			recs := m.InitRecords()
+			for _, rec := range recs {
+				err := Dbo.Model(model).Create(rec).Error
+				if err != nil {
+					tx.Rollback()
+					panic(err)
+				}
+			}
+		}
+		tx.Commit()
+	}
 }
