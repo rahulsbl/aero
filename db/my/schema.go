@@ -58,6 +58,11 @@ func Build(history bool, models ...interface{}) {
 		setupBehaviors(model)
 	}
 
+	// add unique indexes
+	for _, model := range models {
+		setupUniqIndexes(model)
+	}
+
 	// initialize records
 	for _, model := range models {
 		populateRecords(model)
@@ -82,6 +87,9 @@ func setupFKeys(model interface{}) {
 		return
 	}
 
+	// format:
+	// fk:"table_name(identity_key)"
+
 	// add foreign keys
 	mt := reflect.TypeOf(model).Elem()
 	num := mt.NumField()
@@ -91,6 +99,41 @@ func setupFKeys(model interface{}) {
 		if len(tag.Get("fk")) > 0 {
 			fk := str.SnakeCase(fld.Name)
 			Dbo.Model(model).AddForeignKey(fk, tag.Get("fk"), "RESTRICT", "RESTRICT")
+		}
+	}
+}
+
+func setupUniqIndexes(model interface{}) {
+	tbl := NewTable2(model)
+
+	if tbl.isHistory() {
+		return
+	}
+
+	// formats:
+	// unique:"true"
+	// unique:"idx_name"
+	// unique:"idx_name(field1,field2)"
+
+	allFlds := NestedStructFields(reflect.ValueOf(model).Elem().Interface())
+	for i := 0; i < len(allFlds); i++ {
+		fld := allFlds[i]
+		if len(fld.Tag.Get("unique")) > 0 {
+			name := fld.Tag.Get("unique")
+			if name == "true" { // generate index name
+				name = "idx_" + str.SnakeCase(fld.Name) + "_unique"
+			}
+			lbrace := strings.Index(name, "(")
+			if lbrace == -1 {
+				Dbo.Model(model).AddUniqueIndex(name, str.SnakeCase(fld.Name))
+			} else {
+				fldCsv := name[lbrace+1 : len(name)-1]
+				flds := strings.Split(fldCsv, ",")
+				for i := range flds {
+					flds[i] = strings.TrimSpace(flds[i])
+				}
+				Dbo.Model(model).AddUniqueIndex(name[:lbrace], flds...)
+			}
 		}
 	}
 }
@@ -113,14 +156,14 @@ func setupBehaviors(model interface{}) {
 
 	// do not allow deletes
 	if refl.ComposedOf(model, Persistent{}) {
-		sql := fmt.Sprintf(`CREATE TRIGGER %s_persistent BEFORE DELETE ON %s FOR EACH ROW
+		sql := fmt.Sprintf(`CREATE TRIGGER %s_persistent_delete BEFORE DELETE ON %s FOR EACH ROW
             IF TRUE THEN 
                 SIGNAL SQLSTATE '45000'
                 SET MESSAGE_TEXT = 'Cannot delete records from table. Instead set deleted=1';
             END IF;`, tbl.name, tbl.name)
 		sqlExec(sql)
 
-		sql = fmt.Sprintf(`CREATE TRIGGER %s_persistent_time BEFORE UPDATE ON %s FOR EACH ROW
+		sql = fmt.Sprintf(`CREATE TRIGGER %s_persistent_update BEFORE UPDATE ON %s FOR EACH ROW
         BEGIN
             IF (OLD.deleted = 0) AND (NEW.deleted = 1) THEN
                 SET NEW.deleted_at = NOW();
@@ -135,15 +178,29 @@ func setupBehaviors(model interface{}) {
 	// url_past : push changes of url_web into url_past
 	if refl.ComposedOf(model, WWW{}) {
 		sql := fmt.Sprintf(`CREATE TRIGGER %s_www_url_update BEFORE UPDATE ON %s FOR EACH ROW
-        IF (OLD.url_web <> "") AND (NEW.url_web <> OLD.url_web) THEN
-	       IF NEW.url_web_old IS NULL THEN
-		      SET NEW.url_web_old = JSON_ARRAY();
-	       END IF;
-	       IF JSON_CONTAINS(NEW.url_web_old, JSON_ARRAY(OLD.url_web)) = 0 THEN
-		      SET NEW.url_web_old = JSON_ARRAY_APPEND(NEW.url_web_old, "$", OLD.url_web);
-	       END IF;
-        END IF`, tbl.name, tbl.name)
+        BEGIN
+            IF (OLD.url_web <> "") AND (NEW.url_web <> OLD.url_web) THEN
+                IF NEW.url_web_old IS NULL THEN
+                    SET NEW.url_web_old = JSON_ARRAY();
+                END IF;
+                IF JSON_CONTAINS(NEW.url_web_old, JSON_ARRAY(OLD.url_web)) = 0 THEN
+                    SET NEW.url_web_old = JSON_ARRAY_APPEND(NEW.url_web_old, "$", OLD.url_web);
+                END IF;
+            END IF;
+            IF STRCMP(LEFT(NEW.url_web,1),'/') <> 0 THEN
+                SET NEW.url_web = CONCAT('/', NEW.url_web);
+            END IF;
+        END`, tbl.name, tbl.name)
 		sqlExec(sql)
+
+		sql = fmt.Sprintf(`CREATE TRIGGER %s_www_url_insert BEFORE INSERT ON %s FOR EACH ROW
+        BEGIN
+            IF STRCMP(LEFT(NEW.url_web,1),'/') <> 0 THEN
+                SET NEW.url_web = CONCAT('/', NEW.url_web);
+            END IF;
+        END`, tbl.name, tbl.name)
+		sqlExec(sql)
+
 	}
 }
 
@@ -182,21 +239,21 @@ func setupHistoryAndLogging(model interface{}) *table {
 
 	// insert trigger
 	sqlExec(fmt.Sprintf("drop trigger if exists %s_audit_trail_insert", tbl.name))
-	sql = fmt.Sprintf(`CREATE TRIGGER %s_insert_audit_trail AFTER INSERT ON %s FOR EACH ROW
+	sql = fmt.Sprintf(`CREATE TRIGGER %s_audit_trail_insert AFTER INSERT ON %s FOR EACH ROW
         INSERT INTO %s SELECT 'insert',null, src.* 
         FROM %s as src WHERE src.id = NEW.id;`, tbl.name, tbl.name, his.name, tbl.name)
 	sqlExec(sql)
 
 	// update trigger
 	sqlExec(fmt.Sprintf("drop trigger if exists %s_audit_trail_update", tbl.name))
-	sql = fmt.Sprintf(`CREATE TRIGGER %s_update_audit_trail AFTER UPDATE ON %s FOR EACH ROW
+	sql = fmt.Sprintf(`CREATE TRIGGER %s_audit_trail_update AFTER UPDATE ON %s FOR EACH ROW
     	INSERT INTO %s SELECT 'update',null, src.*
         FROM %s as src WHERE src.id = NEW.id;`, tbl.name, tbl.name, his.name, tbl.name)
 	sqlExec(sql)
 
 	// delete trigger
 	sqlExec(fmt.Sprintf("drop trigger if exists %s_audit_trail_delete", tbl.name))
-	sql = fmt.Sprintf(`CREATE TRIGGER %s_delete_audit_trail BEFORE DELETE ON %s FOR EACH ROW
+	sql = fmt.Sprintf(`CREATE TRIGGER %s_audit_trail_delete BEFORE DELETE ON %s FOR EACH ROW
         INSERT INTO %s SELECT 'delete',null, src.*
         FROM %s as src WHERE src.id = OLD.id;`, tbl.name, tbl.name, his.name, tbl.name)
 	sqlExec(sql)

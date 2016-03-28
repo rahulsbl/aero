@@ -21,7 +21,7 @@ type Persistent struct {
 }
 
 type WWW struct {
-	URLWeb       string    `sql:"TYPE:varchar(256);not null" json:"url_web"`
+	URLWeb       string    `sql:"TYPE:varchar(256);not null" json:"url_web" unique:"true"`
 	URLWebOld    *db.JsonA `sql:"TYPE:json;" json:"-" insert:"no" update:"no"`
 	MetaTitle    string    `sql:"TYPE:varchar(512);not null;DEFAULT:''" json:"meta_title"`
 	MetaDesc     string    `sql:"TYPE:varchar(512);not null;DEFAULT:''" json:"meta_desc"`
@@ -50,10 +50,6 @@ type LiveFields struct {
 	Info *db.JsonM `sql:"TYPE:json" json:"info"`
 }
 
-type PopulateDB interface {
-	InitRecords() []interface{}
-}
-
 type Attribute struct {
 	IDKey
 	Table    string    `sql:"TYPE:varchar(256);not null" json:"table"`
@@ -63,4 +59,8 @@ type Attribute struct {
 	Datatype string    `sql:"TYPE:ENUM('int','string','decimal');not null" json:"datatype"`
 	Multi    uint8     `sql:"TYPE:tinyint unsigned;not null;DEFAULT:'0'" json:"table"`
 	Superset *db.JsonA `sql:"TYPE:json" json:"superset"`
+}
+
+type PopulateDB interface {
+	InitRecords() []interface{}
 }
