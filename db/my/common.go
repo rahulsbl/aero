@@ -46,19 +46,8 @@ type AuditTrail struct {
 	ActionedAt time.Time `sql:"not null;DEFAULT:current_timestamp"`
 }
 
-type LiveFields struct {
+type DynamicFields struct {
 	Info *db.JsonM `sql:"TYPE:json" json:"info"`
-}
-
-type Attribute struct {
-	IDKey
-	Table    string    `sql:"TYPE:varchar(256);not null" json:"table"`
-	Field    string    `sql:"TYPE:varchar(256);not null" json:"field"`
-	Code     string    `sql:"TYPE:varchar(256);not null" json:"code"`
-	Label    string    `sql:"TYPE:varchar(256);not null" json:"label"`
-	Datatype string    `sql:"TYPE:ENUM('int','string','decimal');not null" json:"datatype"`
-	Multi    uint8     `sql:"TYPE:tinyint unsigned;not null;DEFAULT:'0'" json:"table"`
-	Superset *db.JsonA `sql:"TYPE:json" json:"superset"`
 }
 
 type PopulateDB interface {
