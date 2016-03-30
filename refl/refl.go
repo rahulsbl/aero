@@ -40,23 +40,3 @@ func ComposedOf(item interface{}, parent interface{}) bool {
 
 	return true
 }
-
-// func StructFields(strukt interface{}) []reflect.StructField {
-
-// 	st := reflect.TypeOf(strukt)
-// 	if st.Kind() == reflect.Ptr {
-// 		st = st.Elem()
-// 	}
-
-// 	if st.Kind() != reflect.Struct {
-// 		panic("struct or struct address expected")
-// 	}
-
-// 	flds := []reflect.StructField{}
-// 	count := st.NumField()
-// 	for i := 0; i < count; i++ {
-// 		flds = append(flds, st.Field(i))
-// 	}
-
-// 	return flds
-// }
