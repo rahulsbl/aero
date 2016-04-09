@@ -1,9 +1,6 @@
 package my
 
-import (
-	"fmt"
-	"reflect"
-)
+import "fmt"
 
 type field struct {
 	Field   string  `gorm:"column:Field"`
@@ -24,25 +21,4 @@ func (f *field) info() string {
 	}
 	key += " " + f.Extra
 	return key
-}
-
-func NestedStructFields(ifc interface{}) []reflect.StructField {
-	fields := make([]reflect.StructField, 0)
-
-	ift := reflect.TypeOf(ifc)
-	ifv := reflect.ValueOf(ifc)
-
-	for i := 0; i < ift.NumField(); i++ {
-
-		fv := ifv.Field(i)
-		ft := ift.Field(i)
-
-		if fv.Kind() == reflect.Struct {
-			fields = append(fields, NestedStructFields(fv.Interface())...)
-		} else {
-			fields = append(fields, ft)
-		}
-	}
-
-	return fields
 }

@@ -63,6 +63,11 @@ func Build(history bool, models ...interface{}) {
 		setupUniqIndexes(model)
 	}
 
+	// add custom triggers
+	for _, model := range models {
+		populateTriggers(model)
+	}
+
 	// initialize records
 	for _, model := range models {
 		populateRecords(model)
@@ -115,7 +120,7 @@ func setupUniqIndexes(model interface{}) {
 	// unique:"idx_name"
 	// unique:"idx_name(field1,field2)"
 
-	allFlds := NestedStructFields(reflect.ValueOf(model).Elem().Interface())
+	allFlds := refl.NestedFields(reflect.ValueOf(model).Elem().Interface())
 	for i := 0; i < len(allFlds); i++ {
 		fld := allFlds[i]
 		if len(fld.Tag.Get("unique")) > 0 {
@@ -259,6 +264,18 @@ func setupHistoryAndLogging(model interface{}) *table {
 	sqlExec(sql)
 
 	return his
+}
+
+func populateTriggers(model interface{}) {
+	if m, ok := model.(Triggers); ok {
+		trigs := m.InitTriggers()
+		for _, trg := range trigs {
+			err := Dbo.Exec(trg).Error
+			if err != nil {
+				panic(err)
+			}
+		}
+	}
 }
 
 func populateRecords(model interface{}) {

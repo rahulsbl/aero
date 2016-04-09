@@ -1,6 +1,7 @@
 package refl
 
 import (
+	"reflect"
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
@@ -57,4 +58,21 @@ func TestComposedOf(t *testing.T) {
 		So(ComposedOf(Son{}, Uncle{}), ShouldBeFalse)
 	})
 
+}
+
+func TestSignature(t *testing.T) {
+
+	type Bingo struct{}
+
+	Convey("The Signature() function", t, func() {
+		Convey("Should revert st:<package-name>.<struct-name> for a struct type", func() {
+			a := Bingo{}
+			So(TypeSignature(reflect.TypeOf(a)), ShouldEqual, "st:github.com/thejackrabbit/aero/refl.Bingo")
+			So(TypeSignature(reflect.TypeOf(&a)), ShouldEqual, "*st:github.com/thejackrabbit/aero/refl.Bingo")
+		})
+		Convey("Then it should revert map for a map-type", func() {
+			a := make(map[string]interface{})
+			So(TypeSignature(reflect.TypeOf(a)), ShouldEqual, "map")
+		})
+	})
 }

@@ -53,3 +53,7 @@ type DynamicFields struct {
 type PopulateDB interface {
 	InitRecords() []interface{}
 }
+
+type Triggers interface {
+	InitTriggers() []string
+}
