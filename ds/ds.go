@@ -8,7 +8,7 @@ import (
 	"github.com/fatih/structs"
 	"github.com/mitchellh/mapstructure"
 	"github.com/pquerna/ffjson/ffjson"
-	"github.com/thejackrabbit/aero/panik"
+	"github.com/rightjoin/aero/panik"
 )
 
 func init() {

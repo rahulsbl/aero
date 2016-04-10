@@ -2,9 +2,10 @@ package engine
 
 import (
 	"errors"
-	goc "github.com/pmylund/go-cache"
-	"github.com/thejackrabbit/aero/key"
 	"time"
+
+	goc "github.com/pmylund/go-cache"
+	"github.com/rightjoin/aero/key"
 )
 
 // Stores data in memory. Major use-case is for use on development machines
