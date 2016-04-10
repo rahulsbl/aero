@@ -6,9 +6,9 @@ import (
 	"strings"
 
 	"github.com/jinzhu/gorm"
-	"github.com/thejackrabbit/aero/panik"
-	"github.com/thejackrabbit/aero/refl"
-	"github.com/thejackrabbit/aero/str"
+	"github.com/rightjoin/aero/panik"
+	"github.com/rightjoin/aero/refl"
+	"github.com/rightjoin/aero/str"
 )
 
 var Dbo *gorm.DB

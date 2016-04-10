@@ -3,8 +3,8 @@ package orm
 import (
 	"testing"
 
+	"github.com/rightjoin/aero/db"
 	. "github.com/smartystreets/goconvey/convey"
-	"github.com/thejackrabbit/aero/db"
 )
 
 func TestModelMustInsert(t *testing.T) {

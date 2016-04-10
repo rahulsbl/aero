@@ -2,12 +2,13 @@ package conf
 
 import (
 	"fmt"
-	"github.com/jacobstr/confer"
-	"github.com/serenize/snaker"
-	"github.com/thejackrabbit/aero/panik"
 	"path/filepath"
 	"reflect"
 	"strings"
+
+	"github.com/jacobstr/confer"
+	"github.com/rightjoin/aero/panik"
+	"github.com/serenize/snaker"
 )
 
 // TODO:

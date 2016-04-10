@@ -4,10 +4,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/thejackrabbit/aero/conf"
-	"github.com/thejackrabbit/aero/db/cstr"
-	"github.com/thejackrabbit/aero/engine"
-	"github.com/thejackrabbit/aero/panik"
+	"github.com/rightjoin/aero/conf"
+	"github.com/rightjoin/aero/db/cstr"
+	"github.com/rightjoin/aero/engine"
+	"github.com/rightjoin/aero/panik"
 )
 
 type Queue interface {

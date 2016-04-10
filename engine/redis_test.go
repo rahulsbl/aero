@@ -4,8 +4,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/rightjoin/aero/panik"
 	. "github.com/smartystreets/goconvey/convey"
-	"github.com/thejackrabbit/aero/panik"
 )
 
 var redis_host string = "dockerhost"

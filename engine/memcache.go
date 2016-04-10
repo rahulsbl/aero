@@ -4,8 +4,8 @@ import (
 	"time"
 
 	"github.com/kklis/gomemcache"
-	"github.com/thejackrabbit/aero/key"
-	"github.com/thejackrabbit/aero/panik"
+	"github.com/rightjoin/aero/key"
+	"github.com/rightjoin/aero/panik"
 )
 
 type Memcache struct {

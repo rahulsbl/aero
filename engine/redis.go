@@ -2,11 +2,12 @@ package engine
 
 import (
 	"fmt"
-	"github.com/thejackrabbit/aero/key"
-	"github.com/thejackrabbit/aero/panik"
-	"gopkg.in/redis.v3"
 	"strings"
 	"time"
+
+	"github.com/rightjoin/aero/key"
+	"github.com/rightjoin/aero/panik"
+	"gopkg.in/redis.v3"
 )
 
 type Redis struct {

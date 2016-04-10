@@ -5,8 +5,8 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/thejackrabbit/aero/str"
-	"github.com/tolexo/aero/panik"
+	"github.com/rightjoin/aero/panik"
+	"github.com/rightjoin/aero/str"
 )
 
 type table struct {

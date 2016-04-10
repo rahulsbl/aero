@@ -3,7 +3,7 @@ package refl
 import (
 	"reflect"
 
-	"github.com/tolexo/aero/panik"
+	"github.com/rightjoin/aero/panik"
 )
 
 func IsAddress(addr interface{}) bool {

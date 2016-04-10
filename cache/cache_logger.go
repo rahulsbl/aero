@@ -2,12 +2,13 @@ package cache
 
 import (
 	"fmt"
-	"github.com/mgutz/logxi/v1"
-	"github.com/thejackrabbit/aero/key"
-	"github.com/thejackrabbit/aero/panik"
 	"os"
 	"strings"
 	"time"
+
+	"github.com/mgutz/logxi/v1"
+	"github.com/rightjoin/aero/key"
+	"github.com/rightjoin/aero/panik"
 )
 
 type CacheLogger struct {

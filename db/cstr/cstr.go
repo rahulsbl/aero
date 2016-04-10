@@ -2,12 +2,13 @@ package cstr
 
 import (
 	"fmt"
+	"math/rand"
+
 	_ "github.com/go-sql-driver/mysql"
 	_ "github.com/lib/pq"
 	_ "github.com/mattn/go-sqlite3"
-	"github.com/thejackrabbit/aero/conf"
-	"github.com/thejackrabbit/aero/panik"
-	"math/rand"
+	"github.com/rightjoin/aero/conf"
+	"github.com/rightjoin/aero/panik"
 )
 
 func init() {
