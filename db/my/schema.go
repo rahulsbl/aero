@@ -184,6 +184,10 @@ func setupBehaviors(model interface{}) {
 	if refl.ComposedOf(model, WWW{}) {
 		sql := fmt.Sprintf(`CREATE TRIGGER %s_www_url_update BEFORE UPDATE ON %s FOR EACH ROW
         BEGIN
+            IF STRCMP(LEFT(NEW.url_web,1),'/') <> 0 THEN
+                SET NEW.url_web = CONCAT('/', NEW.url_web);
+            END IF;
+
             IF (OLD.url_web <> "") AND (NEW.url_web <> OLD.url_web) THEN
                 IF NEW.url_web_old IS NULL THEN
                     SET NEW.url_web_old = JSON_ARRAY();
@@ -191,9 +195,6 @@ func setupBehaviors(model interface{}) {
                 IF JSON_CONTAINS(NEW.url_web_old, JSON_ARRAY(OLD.url_web)) = 0 THEN
                     SET NEW.url_web_old = JSON_ARRAY_APPEND(NEW.url_web_old, "$", OLD.url_web);
                 END IF;
-            END IF;
-            IF STRCMP(LEFT(NEW.url_web,1),'/') <> 0 THEN
-                SET NEW.url_web = CONCAT('/', NEW.url_web);
             END IF;
         END`, tbl.name, tbl.name)
 		sqlExec(sql)
@@ -205,7 +206,6 @@ func setupBehaviors(model interface{}) {
             END IF;
         END`, tbl.name, tbl.name)
 		sqlExec(sql)
-
 	}
 }
 
