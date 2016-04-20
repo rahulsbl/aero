@@ -41,7 +41,7 @@ func Insertable(modl interface{}, data map[string]string) (bool, []error) {
 			if errs == nil {
 				errs = make([]error, 0)
 			}
-			errs = append(errs, fmt.Errorf("Unneeded field present: %s", sql))
+			errs = append(errs, fmt.Errorf("Extra field present: %s", sql))
 		}
 
 		// json_array and json_map validations
@@ -95,7 +95,7 @@ func Updatable(modl interface{}, data map[string]string) (bool, []error) {
 			if errs == nil {
 				errs = make([]error, 0)
 			}
-			errs = append(errs, fmt.Errorf("Unneeded field present: %s", sql))
+			errs = append(errs, fmt.Errorf("Extra field present: %s", sql))
 		}
 
 		// json_array and json_map validations
