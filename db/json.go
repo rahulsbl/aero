@@ -4,6 +4,8 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"errors"
+
+	"github.com/rightjoin/aero/ds"
 )
 
 // Add support for Json fields
@@ -11,12 +13,12 @@ import (
 
 type JsonM map[string]interface{}
 
-func NewJsonM() *JsonM {
+func NewJsonM2() *JsonM {
 	j := make(JsonM)
 	return &j
 }
 
-func NewJsonM2(data map[string]interface{}) *JsonM {
+func NewJsonM(data map[string]interface{}) *JsonM {
 	j := make(JsonM)
 	for key := range data {
 		j[key] = data[key]
@@ -82,5 +84,49 @@ func (j *JsonA) Scan(value interface{}) error {
 	if err := json.Unmarshal(bytes, &j); err != nil {
 		return err
 	}
+	return nil
+}
+
+type Json struct {
+	Data interface{}
+}
+
+func NewJson(data interface{}) *Json {
+	return &Json{Data: data}
+}
+
+func NewJson2(str string) *Json {
+	var d interface{}
+	err := ds.Load(&d, []byte(str))
+	if err != nil {
+		panic(err)
+	}
+	return NewJson(d)
+}
+
+func (j *Json) Value() (driver.Value, error) {
+	if j == nil || j.Data == nil {
+		return nil, nil
+	}
+	str, err := json.Marshal(j.Data)
+	return string(str), err
+}
+
+func (j *Json) Scan(value interface{}) error {
+
+	if value == nil {
+		j.Data = nil // j.Data or j (?)
+		return nil
+	}
+
+	bytes, ok := value.([]byte)
+	if !ok {
+		return errors.New("Scan source was not []bytes")
+	}
+	var load interface{}
+	if err := json.Unmarshal(bytes, &load); err != nil {
+		return err
+	}
+	j.Data = load
 	return nil
 }
