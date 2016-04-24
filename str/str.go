@@ -21,7 +21,10 @@ func UrlCase(text string) string {
 		}
 		words = append(words, s[:l])
 	}
-	return strings.ToLower(strings.Join(words, "-"))
+
+	url := strings.ToLower(strings.Join(words, "-"))
+	url = strings.Replace(url, "--", "-", -1) // pure hack. todo: reg-ex
+	return url
 }
 
 func SentenceCase(text string) string {
