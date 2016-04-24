@@ -21,16 +21,16 @@ type Persistent struct {
 }
 
 type WWW struct {
-	URLWeb       string    `sql:"TYPE:varchar(256);not null" json:"url_web" unique:"true"`
-	URLWebOld    *db.JsonA `sql:"TYPE:json;" json:"-" insert:"no" update:"no"`
-	MetaTitle    string    `sql:"TYPE:varchar(512);not null;DEFAULT:''" json:"meta_title"`
-	MetaDesc     string    `sql:"TYPE:varchar(512);not null;DEFAULT:''" json:"meta_desc"`
-	MetaKeywords string    `sql:"TYPE:varchar(512);not null;DEFAULT:''" json:"meta_keywords"`
-	Sitemap      uint8     `sql:"TYPE:tinyint unsigned;not null;DEFAULT:'1'" json:"sitemap"`
+	URLWeb       string   `sql:"TYPE:varchar(256);not null" json:"url_web" unique:"true"`
+	URLWebOld    *db.JArr `sql:"TYPE:json;" json:"-" insert:"no" update:"no"`
+	MetaTitle    string   `sql:"TYPE:varchar(512);not null;DEFAULT:''" json:"meta_title"`
+	MetaDesc     string   `sql:"TYPE:varchar(512);not null;DEFAULT:''" json:"meta_desc"`
+	MetaKeywords string   `sql:"TYPE:varchar(512);not null;DEFAULT:''" json:"meta_keywords"`
+	Sitemap      uint8    `sql:"TYPE:tinyint unsigned;not null;DEFAULT:'1'" json:"sitemap"`
 }
 
 type Tagged struct {
-	Tags *db.JsonA `sql:"TYPE:json;" json:"tags"`
+	Tags *db.JArr `sql:"TYPE:json;" json:"tags"`
 }
 
 type Ordered struct {
@@ -38,7 +38,7 @@ type Ordered struct {
 }
 
 type Modifier struct {
-	Actor *db.JsonM `sql:"TYPE:json" json:"actor"`
+	Actor *db.JDoc `sql:"TYPE:json" json:"actor"`
 }
 
 type AuditTrail struct {
@@ -47,7 +47,7 @@ type AuditTrail struct {
 }
 
 type DynamicFields struct {
-	Info *db.JsonM `sql:"TYPE:json" json:"info"`
+	Info *db.JDoc `sql:"TYPE:json" json:"info"`
 }
 
 type PopulateDB interface {

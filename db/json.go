@@ -11,22 +11,22 @@ import (
 // Add support for Json fields
 // http://www.booneputney.com/2015-06-18-gorm-golang-jsonb-value-copy/
 
-type JsonM map[string]interface{}
+type JDoc map[string]interface{}
 
-func NewJsonM2() *JsonM {
-	j := make(JsonM)
-	return &j
-}
-
-func NewJsonM(data map[string]interface{}) *JsonM {
-	j := make(JsonM)
+func NewJDoc(data map[string]interface{}) *JDoc {
+	j := make(JDoc)
 	for key := range data {
 		j[key] = data[key]
 	}
 	return &j
 }
 
-func (j *JsonM) Value() (driver.Value, error) {
+func NewJDoc2() *JDoc {
+	j := make(JDoc)
+	return &j
+}
+
+func (j *JDoc) Value() (driver.Value, error) {
 	if j == nil {
 		return nil, nil
 	}
@@ -34,7 +34,7 @@ func (j *JsonM) Value() (driver.Value, error) {
 	return string(str), err
 }
 
-func (j *JsonM) Scan(value interface{}) error {
+func (j *JDoc) Scan(value interface{}) error {
 	if value == nil {
 		j = nil
 	}
@@ -48,24 +48,24 @@ func (j *JsonM) Scan(value interface{}) error {
 	return nil
 }
 
-func (j *JsonM) Set(key string, val interface{}) *JsonM {
+func (j *JDoc) Set(key string, val interface{}) *JDoc {
 	(*j)[key] = val
 	return j
 }
 
-type JsonA []interface{}
+type JArr []interface{}
 
-func NewJsonA(items ...interface{}) *JsonA {
+func NewJArr(items ...interface{}) *JArr {
 	//return new(JsonA)
 	len := len(items)
-	arr := make(JsonA, len)
+	arr := make(JArr, len)
 	for i := 0; i < len; i++ {
 		arr[i] = items[i]
 	}
 	return &arr
 }
 
-func (j *JsonA) Value() (driver.Value, error) {
+func (j *JArr) Value() (driver.Value, error) {
 	if j == nil {
 		return nil, nil
 	}
@@ -73,7 +73,7 @@ func (j *JsonA) Value() (driver.Value, error) {
 	return string(str), err
 }
 
-func (j *JsonA) Scan(value interface{}) error {
+func (j *JArr) Scan(value interface{}) error {
 	if value == nil {
 		j = nil
 	}
@@ -87,46 +87,64 @@ func (j *JsonA) Scan(value interface{}) error {
 	return nil
 }
 
-type Json struct {
-	Data interface{} `json:"data"`
-}
+type JRaw []byte
 
-func NewJson(data interface{}) *Json {
-	return &Json{Data: data}
-}
-
-func NewJson2(str string) *Json {
-	var d interface{}
-	err := ds.Load(&d, []byte(str))
+func NewJRaw(ifc interface{}) *JRaw {
+	bytes, err := ds.ToBytes(ifc, false)
 	if err != nil {
 		panic(err)
 	}
-	return NewJson(d)
+	var j JRaw = bytes
+	return &j
 }
 
-func (j *Json) Value() (driver.Value, error) {
-	if j == nil || j.Data == nil {
+func NewJRaw2(str string) *JRaw {
+	var j JRaw = []byte(str)
+	return &j
+}
+
+func (j *JRaw) Value() (driver.Value, error) {
+	if j == nil {
 		return nil, nil
 	}
-	str, err := json.Marshal(j.Data)
-	return string(str), err
+	return string(*j), nil
 }
 
-func (j *Json) Scan(value interface{}) error {
-
+func (j *JRaw) Scan(value interface{}) error {
 	if value == nil {
-		j.Data = nil // j.Data or j (?)
+		*j = nil // todo check?
 		return nil
 	}
 
 	bytes, ok := value.([]byte)
 	if !ok {
-		return errors.New("Scan source was not []bytes")
+		return errors.New("Scan source was not []byte")
 	}
-	var load interface{}
-	if err := json.Unmarshal(bytes, &load); err != nil {
-		return err
-	}
-	j.Data = load
+
+	*j = bytes
 	return nil
+}
+
+func (j *JRaw) MarshalJSON() ([]byte, error) {
+	return *j, nil
+}
+
+func (j *JRaw) UnmarshalJSON(data []byte) error {
+	if j == nil {
+		return errors.New("JRaw: UnmarshalJSON on nil pointer")
+	}
+	*j = append((*j)[0:0], data...)
+	return nil
+}
+
+func (j *JRaw) Obtain() interface{} {
+	if j == nil {
+		return nil
+	}
+	var ifc interface{}
+	err := ds.Load(&ifc, *j)
+	if err != nil {
+		panic(err)
+	}
+	return ifc
 }

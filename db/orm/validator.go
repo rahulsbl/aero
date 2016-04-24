@@ -59,6 +59,12 @@ func Insertable(modl interface{}, data map[string]string) (bool, []error) {
 					success = false
 					errs = append(errs, fmt.Errorf("Field must be json document: %s", sql))
 				}
+			} else if sgnt == "*sl:.uint8" || sgnt == "sl:.uint8" {
+				var test interface{}
+				if ds.Load(&test, []byte(data[sql])) != nil {
+					success = false
+					errs = append(errs, fmt.Errorf("Field must be json: %s", sql))
+				}
 			}
 		}
 	}
@@ -113,9 +119,14 @@ func Updatable(modl interface{}, data map[string]string) (bool, []error) {
 					success = false
 					errs = append(errs, fmt.Errorf("Field must be json document: %s", sql))
 				}
+			} else if sgnt == "*sl:.uint8" || sgnt == "sl:.uint8" {
+				var test interface{}
+				if ds.Load(&test, []byte(data[sql])) != nil {
+					success = false
+					errs = append(errs, fmt.Errorf("Field must be json: %s", sql))
+				}
 			}
 		}
-
 	}
 
 	return success, errs
