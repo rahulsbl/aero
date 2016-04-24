@@ -88,7 +88,7 @@ func (j *JsonA) Scan(value interface{}) error {
 }
 
 type Json struct {
-	Data interface{}
+	Data interface{} `json:"data"`
 }
 
 func NewJson(data interface{}) *Json {
