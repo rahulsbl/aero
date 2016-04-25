@@ -63,7 +63,7 @@ func Insertable(modl interface{}, data map[string]string) (bool, []error) {
 				var test interface{}
 				if ds.Load(&test, []byte(data[sql])) != nil {
 					success = false
-					errs = append(errs, fmt.Errorf("Field must be json: %s", sql))
+					errs = append(errs, fmt.Errorf("Field must be valid json: %s", sql))
 				}
 			}
 		}
@@ -123,7 +123,7 @@ func Updatable(modl interface{}, data map[string]string) (bool, []error) {
 				var test interface{}
 				if ds.Load(&test, []byte(data[sql])) != nil {
 					success = false
-					errs = append(errs, fmt.Errorf("Field must be json: %s", sql))
+					errs = append(errs, fmt.Errorf("Field must be valid json: %s", sql))
 				}
 			}
 		}

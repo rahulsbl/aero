@@ -37,8 +37,8 @@ type Ordered struct {
 	Sequence uint16 `sql:"TYPE:smallint unsigned;not null;DEFAULT:'1'" json:"sequence"`
 }
 
-type Modifier struct {
-	Actor *db.JDoc `sql:"TYPE:json" json:"actor"`
+type LastAction struct {
+	Modifier *db.JDoc `sql:"TYPE:json" json:"modifier"`
 }
 
 type AuditTrail struct {
