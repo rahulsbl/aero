@@ -77,6 +77,15 @@ func Int(defaultVal int, keys ...string) int {
 	}
 }
 
+func Int2(keys ...string) int {
+	key := strings.Join(keys, ".")
+	if !Exists(key) {
+		panic("Int key missing:" + key)
+	}
+
+	return configuration.GetInt(key)
+}
+
 func String(defaultVal string, keys ...string) string {
 	key := strings.Join(keys, ".")
 	if Exists(key) {
