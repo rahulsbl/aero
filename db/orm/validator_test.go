@@ -185,66 +185,66 @@ func TestModelJson(t *testing.T) {
 	var errs []error
 
 	type Mno struct {
-		Any    db.Json
-		AnyPtr *db.Json
+		Any    db.JRaw
+		AnyPtr *db.JRaw
 	}
 
 	Convey("Given a struct that expects any valid Json field", t, func() {
 
 		Convey("Then passing a String literal should be Ok", func() {
-			ok, errs = Insertable(Mno{}, map[string]string{"any": "thing"})
+			ok, errs = Insertable(Mno{}, map[string]string{"any": "\"thing\""})
 			So(ok, ShouldBeTrue)
 			So(len(errs), ShouldEqual, 0)
 
-			// ok, errs = Updatable(Mno{}, map[string]string{"any": "thing"})
-			// So(ok, ShouldBeTrue)
-			// So(len(errs), ShouldEqual, 0)
+			ok, errs = Updatable(Mno{}, map[string]string{"any": "\"thing\""})
+			So(ok, ShouldBeTrue)
+			So(len(errs), ShouldEqual, 0)
 
-			// ok, errs = Insertable(Mno{}, map[string]string{"any_ptr": "\"thinger\""})
-			// So(ok, ShouldBeTrue)
-			// So(len(errs), ShouldEqual, 0)
+			ok, errs = Insertable(Mno{}, map[string]string{"any_ptr": "\"thinger\""})
+			So(ok, ShouldBeTrue)
+			So(len(errs), ShouldEqual, 0)
 
-			// ok, errs = Updatable(Mno{}, map[string]string{"any_ptr": "\"thinger\""})
-			// So(ok, ShouldBeTrue)
-			// So(len(errs), ShouldEqual, 0)
+			ok, errs = Updatable(Mno{}, map[string]string{"any_ptr": "\"thinger\""})
+			So(ok, ShouldBeTrue)
+			So(len(errs), ShouldEqual, 0)
+		})
+
+		Convey("Then passing an Array should give error", func() {
+			ok, errs = Insertable(Mno{}, map[string]string{"mapper": "[1,2,3]"})
+			So(ok, ShouldBeTrue)
+			So(len(errs), ShouldEqual, 0)
+
+			ok, errs = Updatable(Mno{}, map[string]string{"mapper": "[1,2,3]"})
+			So(ok, ShouldBeTrue)
+			So(len(errs), ShouldEqual, 0)
+
+			ok, errs = Insertable(Mno{}, map[string]string{"mapper": "[1,2,3]"})
+			So(ok, ShouldBeTrue)
+			So(len(errs), ShouldEqual, 0)
+
+			ok, errs = Updatable(Mno{}, map[string]string{"mapper_ptr": "[1,2,3]"})
+			So(ok, ShouldBeTrue)
+			So(len(errs), ShouldEqual, 0)
+		})
+
+		Convey("Then passing a Document should be Ok", func() {
+			ok, errs = Insertable(Mno{}, map[string]string{"mapper": "{\"key\":\"value\"}"})
+			So(ok, ShouldBeTrue)
+			So(len(errs), ShouldEqual, 0)
+
+			ok, errs = Updatable(Mno{}, map[string]string{"mapper": "{\"key\":\"value\"}"})
+			So(ok, ShouldBeTrue)
+			So(len(errs), ShouldEqual, 0)
+
+			ok, errs = Insertable(Mno{}, map[string]string{"mapper_ptr": "{\"key\":\"value\"}"})
+			So(ok, ShouldBeTrue)
+			So(len(errs), ShouldEqual, 0)
+
+			ok, errs = Updatable(Mno{}, map[string]string{"mapper_ptr": "{\"key\":\"value\"}"})
+			So(ok, ShouldBeTrue)
+			So(len(errs), ShouldEqual, 0)
 		})
 
 	})
-
-	// Convey("Array will pass it", t, func() {
-	// 	ok, errs = Insertable(Mno{}, map[string]string{"any": "[1,2,3]"})
-	// 	So(ok, ShouldBeTrue)
-	// 	So(len(errs), ShouldEqual, 0)
-
-	// 	ok, errs = Updatable(Mno{}, map[string]string{"any": "[1,2,3]"})
-	// 	So(ok, ShouldBeTrue)
-	// 	So(len(errs), ShouldEqual, 0)
-
-	// 	ok, errs = Insertable(Mno{}, map[string]string{"any": "[1,2,3]"})
-	// 	So(ok, ShouldBeTrue)
-	// 	So(len(errs), ShouldEqual, 0)
-
-	// 	ok, errs = Updatable(Mno{}, map[string]string{"any_ptr": "[1,2,3]"})
-	// 	So(ok, ShouldBeTrue)
-	// 	So(len(errs), ShouldEqual, 0)
-	// })
-
-	// Convey("Map will pass it", t, func() {
-	// 	ok, errs = Insertable(Mno{}, map[string]string{"any": "{\"key\":\"value\"}"})
-	// 	So(ok, ShouldBeTrue)
-	// 	So(len(errs), ShouldEqual, 0)
-
-	// 	ok, errs = Updatable(Mno{}, map[string]string{"any": "{\"key\":\"value\"}"})
-	// 	So(ok, ShouldBeTrue)
-	// 	So(len(errs), ShouldEqual, 0)
-
-	// 	ok, errs = Insertable(Mno{}, map[string]string{"any_ptr": "{\"key\":\"value\"}"})
-	// 	So(ok, ShouldBeTrue)
-	// 	So(len(errs), ShouldEqual, 0)
-
-	// 	ok, errs = Updatable(Mno{}, map[string]string{"any_ptr": "{\"key\":\"value\"}"})
-	// 	So(ok, ShouldBeTrue)
-	// 	So(len(errs), ShouldEqual, 0)
-	// })
 
 }
