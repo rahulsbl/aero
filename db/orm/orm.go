@@ -33,7 +33,7 @@ func GetConn(engine string, conn string) *gorm.DB {
 	var err error
 
 	if ormCurr, ok = engines[conn]; ok {
-		return ormCurr
+		return ormCurr.Unscoped()
 	}
 
 	// http://go-database-sql.org/accessing.html
@@ -45,12 +45,11 @@ func GetConn(engine string, conn string) *gorm.DB {
 			}
 		}
 		engines[conn] = ormObj
-		return ormObj
+		return ormObj.Unscoped()
 	}
 	panic(err)
 }
 
-// orm initializers
 var ormInit []func(*gorm.DB) = make([]func(*gorm.DB), 0)
 
 func Initialize(fn func(*gorm.DB)) {
