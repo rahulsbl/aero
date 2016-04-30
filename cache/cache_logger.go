@@ -8,7 +8,6 @@ import (
 
 	"github.com/mgutz/logxi/v1"
 	"github.com/rightjoin/aero/key"
-	"github.com/rightjoin/aero/panik"
 )
 
 type CacheLogger struct {
@@ -29,7 +28,9 @@ func NewCacheLogger(dir string, inner Cacher) Cacher {
 
 	fmt.Println(dir)
 	f, err := os.OpenFile(dir+"cache.log", os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
-	panik.On(err)
+	if err != nil {
+		panic(err)
+	}
 
 	l := log.NewLogger3(f, "cache", &log.JSONFormatter{})
 	l.SetLevel(log.LevelInfo)

@@ -1,10 +1,6 @@
 package refl
 
-import (
-	"reflect"
-
-	"github.com/rightjoin/aero/panik"
-)
+import "reflect"
 
 func IsAddress(addr interface{}) bool {
 	rt := reflect.TypeOf(addr)
@@ -22,7 +18,9 @@ func ComposedOf(item interface{}, parent interface{}) bool {
 	if pt.Kind() == reflect.Ptr {
 		pt = pt.Elem()
 	}
-	panik.If(pt.Kind() != reflect.Struct, "parent must be struct type")
+	if pt.Kind() != reflect.Struct {
+		panic("parent must be struct type")
+	}
 
 	// find field with parent's exact name
 	f, ok := it.FieldByName(pt.Name())

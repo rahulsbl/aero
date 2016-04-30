@@ -4,7 +4,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/rightjoin/aero/panik"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -72,7 +71,9 @@ func emptyTheQue() {
 	r := NewRedis2(redis_host, redis_port, redis_db, redis_que)
 	for {
 		i, err := r.Len()
-		panik.On(err)
+		if err != nil {
+			panic(err)
+		}
 		if i != 0 {
 			r.Pop()
 		} else {

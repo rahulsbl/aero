@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/rightjoin/aero/key"
-	"github.com/rightjoin/aero/panik"
 	"gopkg.in/redis.v3"
 )
 
@@ -22,7 +21,9 @@ func NewRedis(host string, port int, db int) Redis {
 		DB:   int64(db),
 	})
 	_, err := serv.Ping().Result()
-	panik.On(err)
+	if err != nil {
+		panic(err)
+	}
 
 	return Redis{
 		r: serv,
@@ -35,7 +36,9 @@ func NewRedis2(host string, port int, db int, name string) Redis {
 		DB:   int64(db),
 	})
 	_, err := serv.Ping().Result()
-	panik.On(err)
+	if err != nil {
+		panic(err)
+	}
 
 	return Redis{
 		r:    serv,
@@ -64,7 +67,10 @@ func (rd Redis) Delete(key string) error {
 }
 
 func (rd Redis) Close() {
-	panik.On(rd.r.Close())
+	err := rd.r.Close()
+	if err != nil {
+		panic(err)
+	}
 }
 
 func (rd Redis) Push(data []byte) error {

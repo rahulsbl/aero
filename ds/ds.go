@@ -4,11 +4,11 @@ package ds
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 
 	"github.com/fatih/structs"
 	"github.com/mitchellh/mapstructure"
 	"github.com/pquerna/ffjson/ffjson"
-	"github.com/rightjoin/aero/panik"
 )
 
 func init() {
@@ -26,7 +26,7 @@ func Load2(addr interface{}, b []byte, enc string) error {
 	case "ffjson":
 		return ffjson.Unmarshal(b, addr)
 	default:
-		panik.Do("Unknown decoding %s", enc)
+		panic(fmt.Sprintf("Unknown decoding %s", enc))
 		return errors.New("Unknown decoding " + enc)
 	}
 }
@@ -62,7 +62,7 @@ func ToBytes2(o interface{}, enc string) ([]byte, error) {
 	case "ffjson":
 		return ffjson.Marshal(o)
 	default:
-		panik.Do("Unknown encoding %s", enc)
+		panic(fmt.Sprintf("Unknown encoding %s", enc))
 		return nil, errors.New("Unknown encoding " + enc)
 	}
 }

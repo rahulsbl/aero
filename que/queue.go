@@ -1,13 +1,13 @@
 package que
 
 import (
+	"fmt"
 	"strings"
 	"time"
 
 	"github.com/rightjoin/aero/conf"
 	"github.com/rightjoin/aero/db/cstr"
 	"github.com/rightjoin/aero/engine"
-	"github.com/rightjoin/aero/panik"
 )
 
 type Queue interface {
@@ -22,19 +22,23 @@ func NewQueue(container ...string) (out Queue) {
 	parent := strings.Join(container, ".")
 
 	engn := conf.String("", parent, "engine")
-	panik.If(engn == "", "queue engine is not specified under %s", parent)
+	if engn == "" {
+		panic(fmt.Sprintf("queue engine is not specified under %s", parent))
+	}
 
 	switch engn {
 	case "redis":
 		{
 			cnf := cstr.Redis{}
 			conf.Struct(&cnf, parent)
-			panik.If(cnf.Name == "", "Redis queue name missing")
+			if cnf.Name == "" {
+				panic(fmt.Sprintf("Redis queue name missing"))
+			}
 			out = engine.NewRedis2(cnf.Host, cnf.Port, cnf.Db, cnf.Name)
 		}
 
 	default:
-		panik.Do("Unknown queue engine: %s", engn)
+		panic(fmt.Sprintf("Unknown queue engine: %s", engn))
 	}
 
 	return out

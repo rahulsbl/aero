@@ -5,7 +5,6 @@ import (
 
 	"github.com/kklis/gomemcache"
 	"github.com/rightjoin/aero/key"
-	"github.com/rightjoin/aero/panik"
 )
 
 type Memcache struct {
@@ -16,7 +15,9 @@ type Memcache struct {
 func NewMemcache(host string, port int) Memcache {
 	// connection check
 	serv, err := gomemcache.Connect(host, port)
-	panik.On(err)
+	if err != nil {
+		panic(err)
+	}
 
 	return Memcache{
 		mc: serv,
@@ -48,5 +49,8 @@ func (c Memcache) Delete(key string) error {
 }
 
 func (c Memcache) Close() {
-	panik.On(c.mc.Close())
+	err := c.mc.Close()
+	if err != nil {
+		panic(err)
+	}
 }

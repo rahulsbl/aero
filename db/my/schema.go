@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"github.com/jinzhu/gorm"
-	"github.com/rightjoin/aero/panik"
 	"github.com/rightjoin/aero/refl"
 	"github.com/rightjoin/aero/str"
 )
@@ -76,13 +75,18 @@ func Build(history bool, models ...interface{}) {
 
 func sqlHasRows(sql string) bool {
 	rows, err := Dbo.Raw(sql).Rows()
-	panik.On(err)
+	if err != nil {
+		panic(err)
+	}
 	defer rows.Close()
 	return rows.Next()
 }
 
 func sqlExec(sql string) {
-	panik.On(Dbo.Exec(sql).Error)
+	err := Dbo.Exec(sql).Error
+	if err != nil {
+		panic(err)
+	}
 }
 
 func setupFKeys(model interface{}) {

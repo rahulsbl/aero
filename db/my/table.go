@@ -5,7 +5,6 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/rightjoin/aero/panik"
 	"github.com/rightjoin/aero/str"
 )
 
@@ -73,7 +72,9 @@ func (t *table) fields() []field {
 	var fields []field
 	sql := fmt.Sprintf("desc %s", t.name)
 	err := Dbo.Raw(sql).Find(&fields).Error
-	panik.On(err)
+	if err != nil {
+		panic(err)
+	}
 	return fields
 }
 

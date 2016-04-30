@@ -1,6 +1,7 @@
 package cache
 
 import (
+	"fmt"
 	"strings"
 	"time"
 
@@ -8,7 +9,6 @@ import (
 	"github.com/rightjoin/aero/db/cstr"
 	"github.com/rightjoin/aero/engine"
 	"github.com/rightjoin/aero/key"
-	"github.com/rightjoin/aero/panik"
 )
 
 type Cacher interface {
@@ -23,7 +23,9 @@ func NewCacher(container ...string) (out Cacher) {
 	parent := strings.Join(container, ".")
 
 	engn := conf.String("", parent, "engine")
-	panik.If(engn == "", "cache engine is not specified")
+	if engn == "" {
+		panic("cache engine is not specified")
+	}
 
 	switch engn {
 	case "memcache":
@@ -37,7 +39,9 @@ func NewCacher(container ...string) (out Cacher) {
 		{
 			expiry := conf.String("1h", parent, "lifetime")
 			life, err := time.ParseDuration(expiry)
-			panik.On(err)
+			if err != nil {
+				panic(err)
+			}
 			out = engine.NewInProcCache(life)
 		}
 
@@ -56,7 +60,7 @@ func NewCacher(container ...string) (out Cacher) {
 		}
 
 	default:
-		panik.Do("Unknown cache engine: %s", engn)
+		panic(fmt.Errorf("Unknown cache engine: %s", engn))
 	}
 
 	return out

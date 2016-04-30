@@ -8,7 +8,6 @@ import (
 	_ "github.com/lib/pq"
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/rightjoin/aero/conf"
-	"github.com/rightjoin/aero/panik"
 )
 
 func init() {
@@ -46,7 +45,7 @@ func ReadConfig(container string) (s Storage) {
 
 	// Get the "type" of the db
 	if !conf.Exists(container) {
-		panik.Do("Configuration under %s not found", container)
+		panic(fmt.Sprintf("Configuration under %s not found", container))
 	}
 
 	s.Engine = conf.String("", container, "engine")
@@ -111,7 +110,7 @@ func ReadConfig(container string) (s Storage) {
 		}
 
 	default:
-		panik.Do("Unsupported db %s", s.Engine)
+		panic(fmt.Sprintf("Unsupported db %s", s.Engine))
 	}
 
 	return

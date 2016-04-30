@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	"github.com/jacobstr/confer"
-	"github.com/rightjoin/aero/panik"
 	"github.com/serenize/snaker"
 )
 
@@ -124,7 +123,7 @@ func Struct(addr interface{}, keys ...string) {
 	// addr should be an address
 	s := fmt.Sprintf("%s", reflect.TypeOf(addr))
 	if !strings.HasPrefix(s, "*") {
-		panik.Do("conf.Read() expects address of struct")
+		panic("conf.Read() expects address of struct")
 	}
 
 	rt := reflect.TypeOf(addr).Elem()
@@ -146,14 +145,14 @@ func Struct(addr interface{}, keys ...string) {
 				case "int":
 					rv.Field(i).SetInt(int64(Int(0, container, k)))
 				default:
-					panik.Do("conf.Read() found '%s' (must be string|int)", ft.Type)
+					panic(fmt.Sprintf("conf.Read() found '%s' (must be string|int)", ft.Type))
 				}
 			}
 		}
 
 		if !found { // if it was required then error
 			if !strings.Contains(ft.Tag.Get("conf"), "optional") {
-				panik.Do("Config '%s' missing in reading %s", key, rt)
+				panic(fmt.Sprintf("Config '%s' missing in reading %s", key, rt))
 			}
 		}
 	}
