@@ -163,6 +163,32 @@ func setupBehaviors(model interface{}) {
 		}
 	}
 
+	// setup user triggers
+	if refl.ComposedOf(model, User{}) {
+		sql := fmt.Sprintf(`CREATE TRIGGER %s_user_insert BEFORE INSERT ON %s FOR EACH ROW
+        BEGIN
+            IF (NEW.active = 1) THEN
+                SET NEW.activated_at = NOW();
+            END IF;
+            IF (NEW.verified = 1) THEN
+                SET NEW.verified_at = NOW();
+            END IF;
+        END`, tbl.name, tbl.name)
+		sqlExec(sql)
+
+		sql = fmt.Sprintf(`CREATE TRIGGER %s_user_update BEFORE UPDATE ON %s FOR EACH ROW
+        BEGIN
+            IF (OLD.active = 0) AND (NEW.active = 1) THEN
+                SET NEW.activated_at = NOW();
+            END IF;
+            IF (OLD.verified = 0) AND (NEW.verified = 1) THEN
+                SET NEW.verified_at = NOW();
+            END IF;
+        END`, tbl.name, tbl.name)
+		sqlExec(sql)
+
+	}
+
 	// do not allow deletes
 	if refl.ComposedOf(model, Persistent{}) {
 		sql := fmt.Sprintf(`CREATE TRIGGER %s_persistent_delete BEFORE DELETE ON %s FOR EACH ROW
