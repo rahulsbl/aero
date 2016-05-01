@@ -63,7 +63,11 @@ func Insertable(modl interface{}, data map[string]string) (bool, []error) {
 		}
 	}
 
-	return len(errs) == 0, errs
+	if len(errs) == 0 {
+		return true, nil
+	}
+	return false, errs
+
 }
 
 func Updatable(modl interface{}, data map[string]string) (bool, []error) {
@@ -118,7 +122,10 @@ func Updatable(modl interface{}, data map[string]string) (bool, []error) {
 		}
 	}
 
-	return len(errs) == 0, errs
+	if len(errs) == 0 {
+		return true, nil
+	}
+	return false, errs
 }
 
 func clone(data map[string]string) map[string]interface{} {
