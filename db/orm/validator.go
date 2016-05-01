@@ -11,8 +11,7 @@ import (
 
 func Insertable(modl interface{}, data map[string]string) (bool, []error) {
 
-	success := true
-	var errs []error
+	var errs []error = make([]error, 0)
 
 	input := clone(data)
 
@@ -28,19 +27,11 @@ func Insertable(modl interface{}, data map[string]string) (bool, []error) {
 
 		// must-insert validation
 		if ok == false && fld.Tag.Get("insert") == "must" {
-			success = false
-			if errs == nil {
-				errs = make([]error, 0)
-			}
 			errs = append(errs, fmt.Errorf("Compulsory field missing: %s", sql))
 		}
 
 		// no-insert validation
 		if ok == true && fld.Tag.Get("insert") == "no" {
-			success = false
-			if errs == nil {
-				errs = make([]error, 0)
-			}
 			errs = append(errs, fmt.Errorf("Extra field present: %s", sql))
 		}
 
@@ -50,31 +41,34 @@ func Insertable(modl interface{}, data map[string]string) (bool, []error) {
 			if sgnt == "sl:." || sgnt == "*sl:." {
 				var test []interface{}
 				if ds.Load(&test, []byte(data[sql])) != nil {
-					success = false
 					errs = append(errs, fmt.Errorf("Field must be json array: %s", sql))
+				} else if sql == "tags" { // must be string array
+					for _, t := range test {
+						if _, ok := t.(string); !ok {
+							errs = append(errs, fmt.Errorf("Field must be json string array: %s", sql))
+						}
+					}
 				}
 			} else if sgnt == "map" || sgnt == "*map" {
 				var test map[string]interface{}
 				if ds.Load(&test, []byte(data[sql])) != nil {
-					success = false
 					errs = append(errs, fmt.Errorf("Field must be json document: %s", sql))
 				}
 			} else if sgnt == "*sl:.uint8" || sgnt == "sl:.uint8" {
 				var test interface{}
 				if ds.Load(&test, []byte(data[sql])) != nil {
-					success = false
 					errs = append(errs, fmt.Errorf("Field must be valid json: %s", sql))
 				}
 			}
 		}
 	}
 
-	return success, errs
+	return len(errs) == 0, errs
 }
 
 func Updatable(modl interface{}, data map[string]string) (bool, []error) {
-	success := true
-	var errs []error
+
+	var errs []error = make([]error, 0)
 
 	input := clone(data)
 
@@ -89,18 +83,10 @@ func Updatable(modl interface{}, data map[string]string) (bool, []error) {
 		_, ok := input[sql]
 
 		if ok == false && fld.Tag.Get("update") == "must" {
-			success = false
-			if errs == nil {
-				errs = make([]error, 0)
-			}
 			errs = append(errs, fmt.Errorf("Compulsory field missing: %s", sql))
 		}
 
 		if ok == true && fld.Tag.Get("update") == "no" {
-			success = false
-			if errs == nil {
-				errs = make([]error, 0)
-			}
 			errs = append(errs, fmt.Errorf("Extra field present: %s", sql))
 		}
 
@@ -110,26 +96,29 @@ func Updatable(modl interface{}, data map[string]string) (bool, []error) {
 			if sgnt == "sl:." || sgnt == "*sl:." {
 				var test []interface{}
 				if ds.Load(&test, []byte(data[sql])) != nil {
-					success = false
 					errs = append(errs, fmt.Errorf("Field must be json array: %s", sql))
+				} else if sql == "tags" { // must be string array
+					for _, t := range test {
+						if _, ok := t.(string); !ok {
+							errs = append(errs, fmt.Errorf("Field must be json string array: %s", sql))
+						}
+					}
 				}
 			} else if sgnt == "map" || sgnt == "*map" {
 				var test map[string]interface{}
 				if ds.Load(&test, []byte(data[sql])) != nil {
-					success = false
 					errs = append(errs, fmt.Errorf("Field must be json document: %s", sql))
 				}
 			} else if sgnt == "*sl:.uint8" || sgnt == "sl:.uint8" {
 				var test interface{}
 				if ds.Load(&test, []byte(data[sql])) != nil {
-					success = false
 					errs = append(errs, fmt.Errorf("Field must be valid json: %s", sql))
 				}
 			}
 		}
 	}
 
-	return success, errs
+	return len(errs) == 0, errs
 }
 
 func clone(data map[string]string) map[string]interface{} {
