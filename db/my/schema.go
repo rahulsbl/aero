@@ -297,8 +297,8 @@ func setupHistoryAndLogging(model interface{}) *table {
 }
 
 func populateTriggers(model interface{}) {
-	if m, ok := model.(Triggers); ok {
-		trigs := m.InitTriggers()
+	if m, ok := model.(Triggered); ok {
+		trigs := m.Triggers()
 		for _, trg := range trigs {
 			err := Dbo.Exec(trg).Error
 			if err != nil {
@@ -309,10 +309,10 @@ func populateTriggers(model interface{}) {
 }
 
 func populateRecords(model interface{}) {
-	if m, ok := model.(PopulateDB); ok {
+	if m, ok := model.(NewDB); ok {
 		tx := Dbo.Begin()
 		{
-			recs := m.InitRecords()
+			recs := m.ZeroFill()
 			for _, rec := range recs {
 				err := Dbo.Model(model).Create(rec).Error
 				if err != nil {

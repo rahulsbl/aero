@@ -62,10 +62,10 @@ type DynamicFields struct {
 	Info *db.JDoc `sql:"TYPE:json" json:"info"`
 }
 
-type PopulateDB interface {
-	InitRecords() []interface{}
+type NewDB interface {
+	ZeroFill() []interface{}
 }
 
-type Triggers interface {
-	InitTriggers() []string
+type Triggered interface {
+	Triggers() []string
 }
