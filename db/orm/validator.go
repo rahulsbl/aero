@@ -47,7 +47,7 @@ func validate(modl interface{}, data map[string]string, lookupTag string) (bool,
 		if ok {
 			if sgnt == "sl:." || sgnt == "*sl:." {
 				var test []interface{}
-				if ds.Load(&test, []byte(data[sql])) != nil {
+				if err := ds.Load(&test, []byte(data[sql])); err != nil {
 					errs = append(errs, fmt.Errorf("Field must be json array: %s", sql))
 				} else if sql == "tags" { // must be string array
 					for _, t := range test {
