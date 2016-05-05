@@ -87,6 +87,40 @@ func (j *JArr) Scan(value interface{}) error {
 	return nil
 }
 
+type JSArr []string
+
+func NewJSArr(items ...string) *JSArr {
+	len := len(items)
+	arr := make(JSArr, len)
+	for i := 0; i < len; i++ {
+		arr[i] = items[i]
+	}
+	return &arr
+}
+
+func (j *JSArr) Value() (driver.Value, error) {
+	if j == nil {
+		return nil, nil
+	}
+	str, err := json.Marshal(j)
+	return string(str), err
+}
+
+func (j *JSArr) Scan(value interface{}) error {
+	if value == nil {
+		j = nil
+		return nil
+	}
+	bytes, ok := value.([]byte)
+	if !ok {
+		return errors.New("Scan source was not []bytes")
+	}
+	if err := json.Unmarshal(bytes, &j); err != nil {
+		return err
+	}
+	return nil
+}
+
 type JRaw []byte
 
 func NewJRaw(ifc interface{}) *JRaw {

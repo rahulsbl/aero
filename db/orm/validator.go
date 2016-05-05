@@ -45,16 +45,11 @@ func validate(modl interface{}, data map[string]string, lookupTag string) (bool,
 		// json_array, json_map and json validations
 		sgnt := refl.TypeSignature(fld.Type)
 		if ok {
+			//fmt.Println(sql, sgnt)
 			if sgnt == "sl:." || sgnt == "*sl:." {
 				var test []interface{}
 				if err := ds.Load(&test, []byte(data[sql])); err != nil {
 					errs = append(errs, fmt.Errorf("Field must be json array: %s", sql))
-				} else if sql == "tags" { // must be string array
-					for _, t := range test {
-						if _, ok := t.(string); !ok {
-							errs = append(errs, fmt.Errorf("Field must be json string array: %s", sql))
-						}
-					}
 				}
 			} else if sgnt == "map" || sgnt == "*map" {
 				var test map[string]interface{}
@@ -65,6 +60,11 @@ func validate(modl interface{}, data map[string]string, lookupTag string) (bool,
 				var test interface{}
 				if ds.Load(&test, []byte(data[sql])) != nil {
 					errs = append(errs, fmt.Errorf("Field must be valid json: %s", sql))
+				}
+			} else if sgnt == "*sl:.string" || sgnt == "sl:.string" {
+				var test []string
+				if err := ds.Load(&test, []byte(data[sql])); err != nil {
+					errs = append(errs, fmt.Errorf("Field must be json string array: %s", sql))
 				}
 			}
 		}

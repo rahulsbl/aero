@@ -42,7 +42,7 @@ type WWW struct {
 }
 
 type Tagged struct {
-	Tags *db.JArr `sql:"TYPE:json;" json:"tags"`
+	Tags *db.JSArr `sql:"TYPE:json;" json:"tags"`
 }
 
 type Ordered struct {
@@ -60,6 +60,10 @@ type AuditTrail struct {
 
 type DynamicFields struct {
 	Info *db.JDoc `sql:"TYPE:json" json:"info"`
+}
+
+type Stateful struct {
+	MachineState *string `sql:"TYPE:varchar(128);null" json:"machine_state"`
 }
 
 type NewDB interface {
