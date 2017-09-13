@@ -7,11 +7,12 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	_ "github.com/lib/pq"
 	_ "github.com/mattn/go-sqlite3"
-	"github.com/rightjoin/aero/conf"
+	"github.com/rahulsbl/aero/conf"
+
 )
 
 func init() {
-	initMasterAndSlaves()
+	initAllMasterAndSlaves();
 }
 
 type Storage struct {
@@ -20,8 +21,31 @@ type Storage struct {
 	Mdb    string // mongo database name
 }
 
+var dbMaster = make(map[string]Storage, 0)
+var dbSlaves = make(map[string][]Storage, 0)
 var master Storage
 var slaves []Storage = make([]Storage, 0)
+
+
+func initAllMasterAndSlaves() {
+
+	// Master
+	lookup := "databases"
+	if conf.Exists(lookup) {
+		readDbConfigs := conf.Get("", lookup);
+		for k := range readDbConfigs.(map[string]interface{}) {
+			var slavesDb []Storage = make([]Storage, 0)
+		 	masterLookup := lookup + "." + k + ".master"
+		 	dbMaster[k] = ReadConfig(masterLookup)
+		 	slaveLookup := lookup + "." + k + ".slaves";
+		 	slaves := conf.StringSlice([]string{}, slaveLookup)
+			for _, container := range slaves {
+				slavesDb = append(slavesDb, ReadConfig(container))
+			}
+			dbSlaves[k] = slavesDb
+		}
+	}
+}
 
 func initMasterAndSlaves() {
 
@@ -126,4 +150,20 @@ func Get(useMaster bool) Storage {
 	}
 
 	return slaves[rand.Intn(len(slaves))]
+}
+
+func SelectConfig(dbName string, useMaster bool) Storage {
+	
+	if useMaster {
+		db, ok := dbMaster[dbName]
+		if !ok || db == (Storage{}) {         
+            panic(fmt.Sprintf("Unsupported db %s", dbName))
+        }
+		return dbMaster[dbName]
+	}
+
+	if len(dbSlaves[dbName]) == 0 {
+		return dbMaster[dbName]
+	}
+	return dbSlaves[dbName][rand.Intn(len(dbSlaves[dbName]))]
 }

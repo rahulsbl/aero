@@ -2,7 +2,7 @@ package orm
 
 import (
 	"github.com/jinzhu/gorm"
-	"github.com/rightjoin/aero/db/cstr"
+	"github.com/rahulsbl/aero/db/cstr"
 )
 
 var engines map[string]*gorm.DB
@@ -18,6 +18,16 @@ func init() {
 
 func Get(useMaster bool) *gorm.DB {
 	s := cstr.Get(useMaster)
+	return GetConn(s.Engine, s.Conn)
+}
+
+func GetShop(useMaster bool) *gorm.DB {
+	s := cstr.SelectConfig("shop", useMaster)
+	return GetConn(s.Engine, s.Conn)
+}
+
+func GetErp(useMaster bool) *gorm.DB {
+	s := cstr.SelectConfig("erp", useMaster)
 	return GetConn(s.Engine, s.Conn)
 }
 
